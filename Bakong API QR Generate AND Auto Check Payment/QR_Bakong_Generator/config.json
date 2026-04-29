@@ -1,0 +1,12 @@
+{
+  "token": "XXXXXXX",
+  "status_url": "https://api-bakong.nbc.gov.kh/v1/check_transaction_by_md5",
+  "check_api_url": "http://localhost/ai/API_Check_Payment/check_payment.php",
+  "telegram_bot_token": "8666722164:AAE_YMQRVyc_-vkS6d42xgU6rnABSfQQo28",
+  "bakong_account_id": "soem_vannthan2@aclb",
+  "merchant_name": "Soem Vannthan",
+  "merchant_city": "Phnom Penh",
+  "currency": "USD",
+  "expiration_minutes": 2,
+  "qr_size": 220
+}

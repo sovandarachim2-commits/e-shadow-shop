@@ -1,0 +1,156 @@
+API CHECK STATUS GUIDE
+======================
+
+Purpose
+-------
+This folder is used to check Bakong payment status by MD5.
+
+Why use this folder?
+--------------------
+If Bakong blocks IP outside Cambodia, you can host this folder on a Cambodia server.
+Then your website can call this API instead of calling Bakong directly.
+
+
+Files in this folder
+--------------------
+check_payment.php
+- Main API file
+- Receives md5 from URL
+- Checks payment with Bakong
+- Returns JSON
+
+composer.json
+- Lists the PHP package this project needs
+
+composer.lock
+- Locks the exact package version
+
+vendor/
+- Actual installed package files
+- Needed when running the API
+
+
+What user needs before use
+--------------------------
+1. PHP server
+2. Cambodia IP server
+3. Bakong token
+4. This folder: API_Check_Payment
+5. vendor/ folder
+
+If vendor/ is missing:
+- Run: composer install
+
+
+How to deploy
+-------------
+Option 1: Upload with vendor/
+1. Upload the whole API_Check_Payment folder to the Cambodia server
+2. Edit check_payment.php
+3. Replace the token with your Bakong token
+4. Open the URL in browser to test
+
+Option 2: Upload without vendor/
+1. Upload check_payment.php
+2. Upload composer.json
+3. Upload composer.lock
+4. Run: composer install
+5. Edit check_payment.php token
+
+
+Change token
+------------
+Open file:
+API_Check_Payment/check_payment.php
+
+Find:
+$token = 'YOUR_TOKEN';
+
+Replace with your real Bakong token.
+
+
+API URL format
+--------------
+Example:
+https://your-domain.com/API_Check_Payment/check_payment.php?md5=237db60b0305fadfec1057a54a47f0c2
+
+Local example:
+http://localhost/ai/API_Check_Payment/check_payment.php?md5=237db60b0305fadfec1057a54a47f0c2
+
+Method:
+GET
+
+Parameter:
+md5 = KHQR md5 value
+
+
+Success response example
+------------------------
+If paid:
+{
+  "md5": "237db60b0305fadfec1057a54a47f0c2",
+  "status": "PAID",
+  "success": true
+}
+
+If unpaid:
+{
+  "md5": "237db60b0305fadfec1057a54a47f0c2",
+  "status": "UNPAID",
+  "success": true
+}
+
+
+Error response example
+----------------------
+Invalid md5:
+{
+  "md5": "",
+  "error": "Invalid or missing MD5 hash",
+  "success": false
+}
+
+
+How website uses this API
+-------------------------
+In QR_Bakong_Generator/config.json set:
+
+"check_api_url": "https://your-domain.com/API_Check_Payment/check_payment.php"
+
+Then index.php will call:
+check_api_url + ?md5=YOUR_MD5
+
+
+How payment is marked as paid
+-----------------------------
+The API returns PAID when Bakong response has:
+- responseCode = 0
+- data.acknowledgedDateMs is not empty
+
+Otherwise it returns:
+- UNPAID
+
+
+Test steps
+----------
+1. Generate QR
+2. Copy md5
+3. Open check_payment.php?md5=YOUR_MD5
+4. If customer already paid, response should be PAID
+5. If not paid yet, response should be UNPAID
+
+
+Important notes
+---------------
+1. Keep Bakong token private
+2. Host this API on Cambodia IP if Bakong blocks outside Cambodia
+3. Keep vendor/ folder or run composer install
+4. Do not remove composer.json and composer.lock if another user may reinstall packages later
+
+
+Quick summary
+-------------
+- Generate QR in QR_Bakong_Generator
+- Send md5 to API_Check_Payment/check_payment.php
+- API_Check_Payment checks Bakong from Cambodia IP
+- Return PAID or UNPAID as JSON
