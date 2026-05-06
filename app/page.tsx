@@ -9,6 +9,8 @@ import { defaultHomeHero, getRoutinePostersFromHero, getRoutineVideosFromHero, H
 import { prisma } from "@/lib/prisma";
 import { readSiteSetting } from "@/lib/site-settings";
 
+export const dynamic = "force-dynamic";
+
 function ShelfSection({
   eyebrow,
   title,
