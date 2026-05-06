@@ -4,6 +4,8 @@ import { requireRole } from "@/lib/auth";
 import { defaultHomeHero, getRoutinePostersFromHero, getRoutineVideosFromHero } from "@/lib/home-hero";
 import { readSiteSetting, writeSiteSetting } from "@/lib/site-settings";
 
+export const dynamic = "force-dynamic";
+
 export async function GET() {
   const hero = await readSiteSetting("homeHero", defaultHomeHero);
   return NextResponse.json({ hero });

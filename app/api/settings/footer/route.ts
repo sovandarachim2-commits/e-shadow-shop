@@ -4,6 +4,8 @@ import { requireRole } from "@/lib/auth";
 import { readSiteSetting, writeSiteSetting } from "@/lib/site-settings";
 import { DEFAULT_BRAND_NAME } from "@/lib/site-brand";
 
+export const dynamic = "force-dynamic";
+
 const defaultFooter = {
   brandName: DEFAULT_BRAND_NAME,
   description: "Premium skincare, makeup, and beauty essentials curated for a soft daily glow.",

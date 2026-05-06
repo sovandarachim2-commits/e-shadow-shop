@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuthStore } from "@/lib/auth-store";
 import { useToastStore } from "@/lib/toast-store";
@@ -66,7 +66,7 @@ function getButtonLabel(mode: "continue" | "signup" | "signin") {
   return "Continue with Google";
 }
 
-export function GoogleAuthButton({
+function GoogleAuthButtonContent({
   mode = "continue",
   variant = "default"
 }: {
@@ -177,5 +177,16 @@ export function GoogleAuthButton({
       ) : null}
       {submitting ? <p className="text-center text-xs font-bold text-neutral-500">Connecting Google account...</p> : null}
     </div>
+  );
+}
+
+export function GoogleAuthButton(props: {
+  mode?: "continue" | "signup" | "signin";
+  variant?: "default" | "compact";
+}) {
+  return (
+    <Suspense fallback={null}>
+      <GoogleAuthButtonContent {...props} />
+    </Suspense>
   );
 }

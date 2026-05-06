@@ -4,6 +4,8 @@ import { requireRole } from "@/lib/auth";
 import { defaultPaymentMethods, normalizePaymentMethods } from "@/lib/payment-methods";
 import { readSiteSetting, writeSiteSetting } from "@/lib/site-settings";
 
+export const dynamic = "force-dynamic";
+
 export async function GET() {
   const paymentMethods = normalizePaymentMethods(await readSiteSetting("paymentMethods", defaultPaymentMethods));
   return NextResponse.json({ paymentMethods });

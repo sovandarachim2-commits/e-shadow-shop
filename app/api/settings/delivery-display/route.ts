@@ -3,6 +3,8 @@ import { Role } from "@prisma/client";
 import { requireRole } from "@/lib/auth";
 import { readSiteSetting, writeSiteSetting } from "@/lib/site-settings";
 
+export const dynamic = "force-dynamic";
+
 const defaultDeliveryDisplay = {
   productVisibility: {} as Record<string, boolean>,
   productLabels: {} as Record<string, string>

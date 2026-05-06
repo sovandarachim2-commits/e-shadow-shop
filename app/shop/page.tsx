@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useSearchParams } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import { ProductGrid } from "@/components/product-grid";
 import { RoutineCarousel } from "@/components/routine-carousel";
 import { RoutineVideoSlider } from "@/components/routine-video-slider";
@@ -10,7 +10,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { getRoutinePostersFromHero, getRoutineVideosFromHero, HomeHero } from "@/lib/home-hero";
 import { Brand, Category, Product } from "@/lib/types";
 
-export default function ShopPage() {
+function ShopPageContent() {
   const searchParams = useSearchParams();
   const [products, setProducts] = useState<Product[]>([]);
   const [allProducts, setAllProducts] = useState<Product[]>([]);
@@ -339,5 +339,13 @@ export default function ShopPage() {
         </section>
       )}
     </section>
+  );
+}
+
+export default function ShopPage() {
+  return (
+    <Suspense fallback={<section className="container-page py-12"><Skeleton className="h-96" /></section>}>
+      <ShopPageContent />
+    </Suspense>
   );
 }
