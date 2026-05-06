@@ -1,10 +1,15 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { useEffect, useState } from "react";
-import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { BarChart3, Boxes, LucideIcon, TrendingUp } from "lucide-react";
 import { money } from "@/lib/format";
 import { useAuthStore } from "@/lib/auth-store";
+
+const AdminSalesChart = dynamic(() => import("@/components/admin-sales-chart").then((mod) => mod.AdminSalesChart), {
+  ssr: false,
+  loading: () => <div className="h-full animate-pulse rounded-2xl bg-[#f6f3ec]" />
+});
 
 export default function AdminReportsPage() {
   const token = useAuthStore((state) => state.token);
@@ -45,15 +50,7 @@ export default function AdminReportsPage() {
           <span className="rounded-full bg-emerald-50 px-3 py-1 text-sm font-black text-emerald-600">{money(report.sales || 0)}</span>
         </div>
         <div className="mt-6 h-72">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={report.chart || []}>
-              <CartesianGrid strokeDasharray="3 3" stroke="#e9e4d8" />
-              <XAxis dataKey="date" />
-              <YAxis />
-              <Tooltip />
-              <Bar dataKey="sales" fill="#ffdc1f" radius={[10, 10, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
+          <AdminSalesChart data={report.chart || []} />
         </div>
       </div>
       <div className="admin-card rounded-[26px] p-5">

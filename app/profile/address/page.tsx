@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { CheckCircle2, Crosshair, Loader2, MapPinned, Pencil, Plus, Trash2 } from "lucide-react";
 import { AddressMapPreview } from "@/components/address-map-preview";
@@ -94,7 +94,7 @@ export default function AddressLocationPage() {
     return bTime - aTime;
   });
 
-  async function load() {
+  const load = useCallback(async () => {
     const headers: HeadersInit = token ? { Authorization: `Bearer ${token}` } : {};
     const response = await fetch("/api/address-locations", { headers });
     if (response.status === 401) {
@@ -104,14 +104,14 @@ export default function AddressLocationPage() {
     const data = await response.json().catch(() => ({ locations: [] }));
     setLocations(data.locations || []);
     setLoading(false);
-  }
+  }, [router, token]);
 
   useEffect(() => {
     load().catch(() => {
       setLocations([]);
       setLoading(false);
     });
-  }, [token]);
+  }, [load]);
 
   useEffect(() => {
     const headers: HeadersInit = token ? { Authorization: `Bearer ${token}` } : {};

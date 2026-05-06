@@ -30,25 +30,47 @@ async function buildOrderCode(orderId: string, createdAt: Date) {
   const utcStart = new Date(startOfDay.getTime() - offsetMinutes * 60 * 1000);
   const utcEnd = new Date(endOfDay.getTime() - offsetMinutes * 60 * 1000);
 
-  const dayOrders = await prisma.order.findMany({
-    where: { createdAt: { gte: utcStart, lte: utcEnd } },
-    select: { id: true },
-    orderBy: [{ createdAt: "asc" }, { id: "asc" }]
+  const sequence = await prisma.order.count({
+    where: {
+      AND: [
+        { createdAt: { gte: utcStart, lte: utcEnd } },
+        {
+          OR: [{ createdAt: { lt: createdAt } }, { createdAt, id: { lte: orderId } }]
+        }
+      ]
+    }
   });
 
-  const sequence = Math.max(1, dayOrders.findIndex((entry) => entry.id === orderId) + 1);
-  return formatOrderCode(createdAt, sequence);
+  return formatOrderCode(createdAt, Math.max(1, sequence));
 }
 
 export async function GET(request: NextRequest) {
   const user = await getAuthUser(request);
   if (!user) return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
 
+  const isPrivileged = user.role === Role.ADMIN || user.role === Role.STAFF;
   const orders = await prisma.order.findMany({
-    where: user.role === Role.ADMIN || user.role === Role.STAFF ? undefined : { customerId: user.id },
-    include: { items: { include: { product: true } }, staff: { select: { name: true, commissionRate: true } } },
+    where: isPrivileged ? undefined : { customerId: user.id },
+    include: {
+      items: isPrivileged
+        ? { select: { id: true } }
+        : {
+            select: {
+              id: true,
+              quantity: true,
+              price: true,
+              product: { select: { id: true, name: true, brand: true, imageUrl: true } }
+            }
+          },
+      staff: isPrivileged ? false : { select: { name: true, commissionRate: true } }
+    },
     orderBy: { createdAt: "desc" }
   });
+
+  if (isPrivileged) {
+    return NextResponse.json({ orders });
+  }
+
   const paymentStatuses = await getBakongPaymentStatusesByOrderIds(orders.map((order) => order.id));
   return NextResponse.json({
     orders: orders.map((order) => ({

@@ -1,8 +1,9 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Check, ChevronRight, CircleDollarSign, MapPinned, Phone, Plus, Send, UserRound, X } from "lucide-react";
 import { AddressMapPreview } from "@/components/address-map-preview";
 import { Button } from "@/components/ui/button";
@@ -126,16 +127,16 @@ export default function CheckoutPage() {
       .catch(() => setPaymentMethodSetting(bakongPaymentMethod));
   }, []);
 
-  function createOrderPayload() {
+  const createOrderPayload = useCallback(() => {
     return {
       ...form,
       paymentMethod: paymentMethodSetting.name,
       paymentId: paymentSession?.paymentId,
       items: items.map((item) => ({ productId: item.id, quantity: item.quantity, price: Number(item.price) }))
     };
-  }
+  }, [form, paymentMethodSetting.name, paymentSession?.paymentId, items]);
 
-  async function finalizeOrder(paymentId?: string) {
+  const finalizeOrder = useCallback(async (paymentId?: string) => {
     if (finalizingOrder) return;
     if (!paymentId) return;
 
@@ -161,7 +162,7 @@ export default function CheckoutPage() {
     setPaymentSuccessMessage("Payment successful");
     toast("Payment successful");
     router.push("/orders");
-  }
+  }, [clear, createOrderPayload, finalizingOrder, router, toast, token]);
 
   async function submit(event: React.FormEvent) {
     event.preventDefault();
@@ -195,6 +196,8 @@ export default function CheckoutPage() {
   }
 
   const paymentReference = paymentSession?.md5;
+  const paymentId = paymentSession?.paymentId ?? null;
+  const paymentExpiresInMinutes = paymentSession?.expiresInMinutes ?? 0;
   const paymentStatus = paymentSession?.status;
   const countdownLabel = formatCountdown(countdownSeconds);
   const paymentStatusLabel =
@@ -205,12 +208,12 @@ export default function CheckoutPage() {
         : "Waiting for confirmation";
 
   useEffect(() => {
-    if (!paymentSession) {
+    if (!paymentId) {
       setCountdownSeconds(0);
       return;
     }
 
-    const initialSeconds = Math.max(0, paymentSession.expiresInMinutes * 60);
+    const initialSeconds = Math.max(0, paymentExpiresInMinutes * 60);
     setCountdownSeconds(initialSeconds);
     const startedAt = Date.now();
 
@@ -226,15 +229,15 @@ export default function CheckoutPage() {
     return () => {
       window.clearInterval(timer);
     };
-  }, [paymentSession?.paymentId, paymentSession?.expiresInMinutes]);
+  }, [paymentExpiresInMinutes, paymentId]);
 
   useEffect(() => {
     if (!paymentReference || paymentStatus === "PAID") return;
 
     let cancelled = false;
     const checkStatus = async () => {
-      const paymentQuery = paymentSession?.paymentId
-        ? `paymentId=${encodeURIComponent(paymentSession.paymentId)}`
+      const paymentQuery = paymentId
+        ? `paymentId=${encodeURIComponent(paymentId)}`
         : `md5=${encodeURIComponent(paymentReference)}`;
       const response = await fetch(`/api/payments/bakong/status?${paymentQuery}`, {
         headers: token ? { Authorization: `Bearer ${token}` } : undefined
@@ -265,7 +268,7 @@ export default function CheckoutPage() {
               }
             : current
         );
-        await finalizeOrder(paymentSession?.paymentId || data.paymentId);
+        await finalizeOrder(paymentId || data.paymentId);
         return;
       }
 
@@ -287,7 +290,7 @@ export default function CheckoutPage() {
       cancelled = true;
       window.clearInterval(timer);
     };
-  }, [paymentReference, paymentSession?.paymentId, paymentStatus, token]);
+  }, [finalizeOrder, paymentId, paymentReference, paymentStatus, token]);
 
   return (
     <section className="container-page py-12">
@@ -440,7 +443,14 @@ export default function CheckoutPage() {
                       </p>
                       <div className="mt-4 border-t border-dashed border-[#d8dbe5] md:mt-7" />
                       <div className="relative mt-3 rounded-[24px] bg-white px-1.5 pb-1.5 pt-1 md:mt-6 md:rounded-[28px] md:px-2 md:pb-2">
-                        <img src={paymentSession.qr} alt="Bakong QR" className="mx-auto h-full w-full rounded-[16px]" />
+                        <Image
+                          src={paymentSession.qr}
+                          alt="Bakong QR"
+                          width={640}
+                          height={640}
+                          unoptimized
+                          className="mx-auto h-full w-full rounded-[16px]"
+                        />
                         <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
                           <div className="grid h-[48px] w-[48px] place-items-center rounded-full border-[4px] border-white bg-[#ec171c] shadow-[0_8px_18px_rgba(8,43,76,0.15)] md:h-[58px] md:w-[58px] md:border-[5px] md:shadow-[0_10px_22px_rgba(8,43,76,0.16)]">
                             <div className="relative h-6 w-6 md:h-7 md:w-7">
