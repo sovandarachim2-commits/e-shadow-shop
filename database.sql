@@ -121,7 +121,7 @@ CREATE TABLE OrderItem (
 
 INSERT INTO User (id, name, username, email, password, role, commissionRate)
 VALUES
-  ('admin_user', 'Store Admin', 'admin', 'admin@example.com', '$2a$10$B6RnvAMqgN42UBzTkYX/ZuQSnkc//iRCi4mngUY1tN.Id89FDS5Pm', 'ADMIN', 0);
+  ('admin_user', 'Store Admin', 'admin', 'admin@eshadow.com', '$2a$10$B6RnvAMqgN42UBzTkYX/ZuQSnkc//iRCi4mngUY1tN.Id89FDS5Pm', 'ADMIN', 0);
 
 INSERT INTO Product (id, name, description, price, salePrice, deliveryFee, stock, brand, category, style, imageUrl, isOnSale, isNewArrival, promotionLabel)
 VALUES

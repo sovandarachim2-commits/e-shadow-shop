@@ -7,6 +7,7 @@ import { RoutineVideoSlider } from "@/components/routine-video-slider";
 import { Brand, Product } from "@/lib/types";
 import { defaultHomeHero, getRoutinePostersFromHero, getRoutineVideosFromHero, HomeHero } from "@/lib/home-hero";
 import { prisma } from "@/lib/prisma";
+import { readSiteSetting } from "@/lib/site-settings";
 
 function ShelfSection({
   eyebrow,
@@ -43,10 +44,15 @@ function ShelfSection({
 
 async function getProducts(): Promise<Product[]> {
   try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/api/products`, { cache: "no-store" });
-    if (!response.ok) return [];
-    const data = await response.json();
-    return data.products || [];
+    const products = await prisma.product.findMany({
+      orderBy: { createdAt: "desc" }
+    });
+    return products.map((product) => ({
+      ...product,
+      price: product.price.toString(),
+      salePrice: product.salePrice?.toString() ?? null,
+      deliveryFee: product.deliveryFee.toString()
+    }));
   } catch {
     return [];
   }
@@ -54,10 +60,10 @@ async function getProducts(): Promise<Product[]> {
 
 async function getBrands(): Promise<Brand[]> {
   try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/api/brands`, { cache: "no-store" });
-    if (!response.ok) return [];
-    const data = await response.json();
-    return data.brands || [];
+    return await prisma.brand.findMany({
+      where: { isActive: true },
+      orderBy: [{ sortOrder: "asc" }, { name: "asc" }]
+    });
   } catch {
     return [];
   }
@@ -65,10 +71,7 @@ async function getBrands(): Promise<Brand[]> {
 
 async function getHomeHero(): Promise<HomeHero> {
   try {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"}/api/settings/home`, { cache: "no-store" });
-    if (!response.ok) return defaultHomeHero;
-    const data = await response.json();
-    return data.hero || defaultHomeHero;
+    return await readSiteSetting("homeHero", defaultHomeHero);
   } catch {
     return defaultHomeHero;
   }

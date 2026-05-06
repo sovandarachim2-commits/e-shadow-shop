@@ -35,7 +35,7 @@ Open `http://localhost:3000`.
 
 ## Seed Login
 
-- Admin email: `admin@example.com`
+- Admin email: `admin@eshadow.com`
 - Admin password: `admin123`
 
 ## Main Routes

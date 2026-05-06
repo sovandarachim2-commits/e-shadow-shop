@@ -4,12 +4,19 @@ import bcrypt from "bcryptjs";
 const prisma = new PrismaClient();
 
 async function main() {
+  const seedDemoData = String(process.env.SEED_DEMO_DATA || "false").toLowerCase() === "true";
+
   const password = await bcrypt.hash("admin123", 10);
   await prisma.user.upsert({
-    where: { email: "admin@example.com" },
+    where: { email: "admin@eshadow.com" },
     update: { username: "admin" },
-    create: { name: "Store Admin", username: "admin", email: "admin@example.com", password, role: Role.ADMIN }
+    create: { name: "Store Admin", username: "admin", email: "admin@eshadow.com", password, role: Role.ADMIN }
   });
+
+  if (!seedDemoData) {
+    console.log("Seed complete: admin user only (demo data skipped).");
+    return;
+  }
 
   const products = [
     ["Hydrating Glow Serum", "Lightweight daily serum for a soft, dewy complexion.", 39, null, 0, 40, "VERSACE", "Skincare", "Glow", "https://images.unsplash.com/photo-1620916566398-39f1143ab7be?q=80&w=1200&auto=format&fit=crop", false, true, null],
@@ -62,6 +69,8 @@ async function main() {
       create: { name, sortOrder: index + 1, isActive: true }
     });
   }
+
+  console.log("Seed complete: admin user and demo catalog data.");
 }
 
 main().finally(() => prisma.$disconnect());
