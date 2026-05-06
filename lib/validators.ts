@@ -23,6 +23,7 @@ export const productSchema = z.object({
   description: z.string().min(5),
   price: z.coerce.number().positive(),
   salePrice: z.preprocess((value) => (value === "" ? null : value), z.coerce.number().positive().nullable().optional()),
+  deliveryFee: z.coerce.number().min(0).default(0),
   stock: z.coerce.number().int().min(0),
   brand: z.preprocess((value) => (value === "" ? null : value), z.string().min(2).nullable().optional()),
   category: z.string().min(2),
@@ -48,7 +49,8 @@ export const orderSchema = z.object({
   province: z.string().min(2).optional(),
   note: z.string().optional().nullable(),
   contactTelegram: z.boolean().default(false),
-  paymentMethod: z.string().default("ABA KHQR"),
+  paymentMethod: z.string().default("Bakong KHQR"),
+  paymentId: z.string().optional(),
   items: z.array(
     z.object({
       productId: z.string(),

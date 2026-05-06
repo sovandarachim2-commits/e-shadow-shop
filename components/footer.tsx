@@ -49,16 +49,16 @@ export function Footer() {
   };
 
   return (
-    <footer className="mt-20 border-t border-[#f3c7b8] bg-[#fff8f3] py-12">
+    <footer className="mt-20 border-t border-[var(--champagne)] bg-[var(--surface-tint)] py-12">
       <div className="container-page grid gap-8 md:grid-cols-[1.5fr_1fr_1fr_1fr]">
         <div>
-          <h2 className="text-3xl font-black text-[#082b4c]">{footer.brandName}</h2>
-          <p className="mt-4 max-w-sm text-sm leading-6 text-[#697b91]">{footer.description}</p>
+          <h2 className="text-3xl font-black text-[var(--foreground)]">{footer.brandName}</h2>
+          <p className="mt-4 max-w-sm text-sm leading-6 text-[var(--muted)]">{footer.description}</p>
           <div className="mt-6 flex flex-wrap gap-3">
             {(footer.socials || []).map((social) => {
               const Icon = socialIcons[social.label.toLowerCase() as keyof typeof socialIcons] || Send;
               const content = (
-                <span className="grid h-10 w-10 place-items-center rounded-full border border-[#f3c7b8] bg-white text-[#082b4c] transition hover:bg-[#082b4c] hover:text-white" title={social.label}>
+                <span className="grid h-10 w-10 place-items-center rounded-full border border-[var(--champagne)] bg-white text-[var(--foreground)] transition hover:bg-[var(--navy)] hover:text-white" title={social.label}>
                   <Icon size={18} />
                 </span>
               );
@@ -74,8 +74,8 @@ export function Footer() {
         </div>
         {footer.groups.map((group) => (
           <div key={group.title}>
-            <h3 className="text-sm font-bold text-[#082b4c]">{group.title}</h3>
-            <div className="mt-4 grid gap-3 text-sm text-[#697b91]">
+            <h3 className="text-sm font-bold text-[var(--foreground)]">{group.title}</h3>
+            <div className="mt-4 grid gap-3 text-sm text-[var(--muted)]">
               {group.links.map((link) => (
                 <span key={link}>{link}</span>
               ))}

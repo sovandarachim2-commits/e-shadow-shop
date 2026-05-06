@@ -15,6 +15,8 @@ export default function ProductDetailPage() {
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
+  const [showDeliveryFee, setShowDeliveryFee] = useState(false);
+  const [deliveryLabel, setDeliveryLabel] = useState("$0.00");
   const add = useCartStore((state) => state.add);
   const toast = useToastStore((state) => state.push);
 
@@ -25,6 +27,20 @@ export default function ProductDetailPage() {
       .catch(() => setProduct(null))
       .finally(() => setLoading(false));
   }, [id]);
+
+  useEffect(() => {
+    if (!product) return;
+    fetch("/api/settings/delivery-display")
+      .then((response) => (response.ok ? response.json() : Promise.reject()))
+      .then((data) => {
+        setShowDeliveryFee(Boolean(data.deliveryDisplay?.productVisibility?.[id]));
+        setDeliveryLabel(data.deliveryDisplay?.productLabels?.[id] || money(product.deliveryFee || 0));
+      })
+      .catch(() => {
+        setShowDeliveryFee(false);
+        setDeliveryLabel(money(product.deliveryFee || 0));
+      });
+  }, [id, product]);
 
   if (loading) return <div className="container-page py-16">Loading product...</div>;
   if (!product) {
@@ -38,6 +54,7 @@ export default function ProductDetailPage() {
     );
   }
   const activeSalePrice = product.isOnSale && product.salePrice ? Number(product.salePrice) : null;
+  const deliveryText = `Delivery Fee: ${deliveryLabel}`;
 
   return (
     <section className="container-page grid gap-10 py-12 md:grid-cols-2">
@@ -53,6 +70,9 @@ export default function ProductDetailPage() {
           {activeSalePrice && <p className="pb-1 text-lg text-neutral-400 line-through">{money(product.price)}</p>}
           {product.isNewArrival && <span className="rounded-full bg-[#f8ded8] px-3 py-1 text-xs font-black text-[#e9897e]">NEW</span>}
         </div>
+        {showDeliveryFee ? (
+          <p className="mt-4 text-sm font-black text-[#082b4c]">{deliveryText}</p>
+        ) : null}
         <p className="mt-5 max-w-xl leading-7 text-[#697b91]">{product.description}</p>
         <div className="mt-8 flex w-fit items-center gap-3 rounded-2xl bg-[#fff8f3] p-2">
           <button onClick={() => setQuantity(Math.max(1, quantity - 1))} className="rounded-xl p-2 transition hover:bg-white">

@@ -16,6 +16,7 @@ const empty = {
   description: "",
   price: "",
   salePrice: "",
+  deliveryFee: "",
   stock: "",
   brand: "",
   category: "",
@@ -128,6 +129,7 @@ export default function AdminProductsPage() {
       description: product.description,
       price: String(product.price),
       salePrice: product.salePrice ? String(product.salePrice) : "",
+      deliveryFee: product.deliveryFee ? String(product.deliveryFee) : "0",
       stock: String(product.stock),
       brand: product.brand || "",
       category: product.category,
@@ -425,6 +427,13 @@ export default function AdminProductsPage() {
                 <Input placeholder="0.00" type="number" value={form.salePrice} onChange={(e) => setForm({ ...form, salePrice: e.target.value })} />
               </label>
               <label className="grid gap-2 text-sm font-black text-[#15130f]">
+                Delivery fee
+                <Input placeholder="0.00" type="number" value={form.deliveryFee} onChange={(e) => setForm({ ...form, deliveryFee: e.target.value })} />
+              </label>
+            </section>
+
+            <section className="grid gap-4 lg:grid-cols-1">
+              <label className="grid gap-2 text-sm font-black text-[#15130f]">
                 Stock
                 <Input required placeholder="0" type="number" value={form.stock} onChange={(e) => setForm({ ...form, stock: e.target.value })} />
               </label>
@@ -484,6 +493,7 @@ export default function AdminProductsPage() {
                 <th className="px-5 py-4">Brand</th>
                 <th className="px-5 py-4">Category</th>
                 <th className="px-5 py-4">Price</th>
+                <th className="px-5 py-4">Delivery Fee</th>
                 <th className="px-5 py-4">Stock</th>
                 <th className="px-5 py-4">Status</th>
                 <th className="px-5 py-4 text-right">Action</th>
@@ -513,6 +523,7 @@ export default function AdminProductsPage() {
                     <p className="font-black text-[#15130f]">{money(product.salePrice || product.price)}</p>
                     {product.isOnSale && product.salePrice && <p className="text-xs text-neutral-400 line-through">{money(product.price)}</p>}
                   </td>
+                  <td className="px-5 py-4 text-sm font-bold text-[#15130f]">{money(product.deliveryFee || 0)}</td>
                   <td className="px-5 py-4">
                     <span className={`rounded-full px-3 py-1 text-xs font-black ${product.stock > 0 ? "bg-emerald-50 text-emerald-700" : "bg-red-50 text-red-600"}`}>
                       {product.stock}

@@ -13,6 +13,7 @@ import {
   ListTree,
   LogOut,
   Menu,
+  Images,
   Package,
   WalletCards,
   ReceiptText,
@@ -34,8 +35,8 @@ const groups = [
       { href: "/admin/dashboard", label: "Home", icon: LayoutDashboard },
       { href: "/admin/home", label: "Home Page Content", icon: Home },
       { href: "/admin/routine-video", label: "Routine Video", icon: Video },
+      { href: "/admin/routine-poster", label: "Routine Poster", icon: Images },
       { href: "/admin/orders", label: "Orders", icon: ReceiptText },
-      { href: "/admin/payment-methods", label: "Payment Methods", icon: WalletCards },
       { href: "/admin/delivery", label: "Delivery Settings", icon: Truck },
       { href: "/admin/products", label: "Products", icon: Boxes },
       { href: "/admin/staff", label: "Staff Management", icon: Users }
@@ -55,7 +56,10 @@ const groups = [
   },
   {
     label: "Others",
-    links: [{ href: "/admin/settings", label: "Settings", icon: Settings }]
+    links: [
+      { href: "/admin/payment-methods", label: "Payment Methods", icon: WalletCards },
+      { href: "/admin/settings", label: "Settings", icon: Settings }
+    ]
   }
 ];
 

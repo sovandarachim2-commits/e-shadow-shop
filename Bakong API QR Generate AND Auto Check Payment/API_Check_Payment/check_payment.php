@@ -8,12 +8,36 @@ require_once 'vendor/autoload.php';
 use KHQR\BakongKHQR;
 use KHQR\Exceptions\KHQRException;
 
+$log_file = __DIR__ . DIRECTORY_SEPARATOR . 'response.log';
+
+$configPath = dirname(__DIR__) . DIRECTORY_SEPARATOR . 'QR_Bakong_Generator' . DIRECTORY_SEPARATOR . 'config.json';
+$config = is_file($configPath) ? json_decode((string) file_get_contents($configPath), true) : null;
+if (!is_array($config)) {
+    http_response_code(500);
+    header('Content-Type: application/json');
+    echo json_encode([
+        'error' => 'Invalid QR_Bakong_Generator config.json',
+        'success' => false
+    ], JSON_PRETTY_PRINT);
+    exit;
+}
+
 // Token for BakongKHQR
-$token = 'XXXX';
+$token = trim((string) ($config['token'] ?? ''));
+if ($token === '') {
+    http_response_code(500);
+    header('Content-Type: application/json');
+    echo json_encode([
+        'error' => 'Missing Bakong token in QR_Bakong_Generator config.json',
+        'success' => false
+    ], JSON_PRETTY_PRINT);
+    exit;
+}
+
 $bakongKhqr = new BakongKHQR($token);
 
 // Get and validate MD5
-$md5Hash = $_GET['md5'] ?? '';
+$md5Hash = $argv[1] ?? ($_GET['md5'] ?? '');
 if (!preg_match('/^[a-f0-9]{32}$/', $md5Hash)) {
     http_response_code(400);
     $error_response = [

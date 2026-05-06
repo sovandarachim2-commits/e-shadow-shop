@@ -6,21 +6,16 @@ export type PaymentMethodSetting = {
   isActive: boolean;
 };
 
+export const bakongPaymentMethod: PaymentMethodSetting = {
+  id: "bakong-khqr",
+  name: "Bakong KHQR",
+  description: "Scan and pay with Bakong KHQR",
+  badge: "KHQR",
+  isActive: true
+};
+
 export const defaultPaymentMethods: PaymentMethodSetting[] = [
-  {
-    id: "aba-khqr",
-    name: "ABA KHQR",
-    description: "Scan to pay with any banking app",
-    badge: "KHQR",
-    isActive: true
-  },
-  {
-    id: "acleda",
-    name: "Acleda",
-    description: "Pay with Acleda bank transfer",
-    badge: "ACL",
-    isActive: true
-  }
+  bakongPaymentMethod
 ];
 
 function createMethodId(name: string, index: number) {
@@ -33,23 +28,28 @@ function createMethodId(name: string, index: number) {
 }
 
 export function normalizePaymentMethods(value: unknown): PaymentMethodSetting[] {
-  if (!Array.isArray(value)) return defaultPaymentMethods;
+  if (!Array.isArray(value) || !value.length) return defaultPaymentMethods;
 
-  const methods = value
-    .map((entry, index) => {
-      const record = entry && typeof entry === "object" ? (entry as Record<string, unknown>) : {};
-      const name = String(record.name || "").trim();
-      if (!name) return null;
+  const selectedBakong = value.find((entry) => {
+    const record = entry && typeof entry === "object" ? (entry as Record<string, unknown>) : {};
+    const id = String(record.id || "").trim().toLowerCase();
+    const name = String(record.name || "").trim().toLowerCase();
+    return id === "bakong-khqr" || name === "bakong khqr";
+  });
 
-      return {
-        id: String(record.id || createMethodId(name, index)),
-        name,
-        description: String(record.description || "").trim(),
-        badge: String(record.badge || name.slice(0, 4).toUpperCase()).trim().slice(0, 8) || "PAY",
-        isActive: record.isActive !== false
-      };
-    })
-    .filter(Boolean) as PaymentMethodSetting[];
+  if (!selectedBakong) return defaultPaymentMethods;
 
-  return methods.length ? methods : defaultPaymentMethods;
+  const record = selectedBakong as Record<string, unknown>;
+  const description = String(record.description || "").trim();
+  const badge = String(record.badge || bakongPaymentMethod.badge).trim().slice(0, 8) || bakongPaymentMethod.badge;
+  const isActive = typeof record.isActive === "boolean" ? record.isActive : true;
+
+  return [
+    {
+      ...bakongPaymentMethod,
+      description: description || bakongPaymentMethod.description,
+      badge,
+      isActive
+    }
+  ];
 }

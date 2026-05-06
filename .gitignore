@@ -4,3 +4,10 @@ node_modules
 dist
 coverage
 *.log
+public/uploads/
+public/vedio/
+public/image/
+public/video/
+tools/
+ngrok.exe
+*.tsbuildinfo

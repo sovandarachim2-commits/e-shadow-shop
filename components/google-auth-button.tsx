@@ -18,6 +18,7 @@ declare global {
           renderButton: (
             element: HTMLElement,
             options: {
+              type?: "standard" | "icon";
               theme?: "outline" | "filled_blue" | "filled_black";
               size?: "large" | "medium" | "small";
               shape?: "rectangular" | "pill" | "circle" | "square";
@@ -36,7 +37,42 @@ function getRedirectPath(searchParams: URLSearchParams) {
   return searchParams.get("redirect") || "/";
 }
 
-export function GoogleAuthButton({ mode = "continue" }: { mode?: "continue" | "signup" | "signin" }) {
+function GoogleMark() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" className="h-5 w-5">
+      <path
+        fill="#4285F4"
+        d="M23.49 12.27c0-.79-.07-1.55-.2-2.27H12v4.3h6.44a5.5 5.5 0 0 1-2.39 3.61v2.99h3.87c2.26-2.08 3.57-5.14 3.57-8.63Z"
+      />
+      <path
+        fill="#34A853"
+        d="M12 24c3.24 0 5.95-1.07 7.93-2.9l-3.87-2.99c-1.07.72-2.45 1.15-4.06 1.15-3.12 0-5.76-2.11-6.7-4.95H1.3v3.09A11.99 11.99 0 0 0 12 24Z"
+      />
+      <path
+        fill="#FBBC05"
+        d="M5.3 14.31A7.19 7.19 0 0 1 4.93 12c0-.8.14-1.58.37-2.31V6.6H1.3A11.99 11.99 0 0 0 0 12c0 1.94.46 3.78 1.3 5.4l4-3.09Z"
+      />
+      <path
+        fill="#EA4335"
+        d="M12 4.77c1.76 0 3.33.61 4.57 1.8l3.43-3.43C17.94 1.19 15.24 0 12 0A11.99 11.99 0 0 0 1.3 6.6l4 3.09c.94-2.84 3.58-4.92 6.7-4.92Z"
+      />
+    </svg>
+  );
+}
+
+function getButtonLabel(mode: "continue" | "signup" | "signin") {
+  if (mode === "signup") return "Sign up with Google";
+  if (mode === "signin") return "Sign in with Google";
+  return "Continue with Google";
+}
+
+export function GoogleAuthButton({
+  mode = "continue",
+  variant = "default"
+}: {
+  mode?: "continue" | "signup" | "signin";
+  variant?: "default" | "compact";
+}) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const setAuth = useAuthStore((state) => state.setAuth);
@@ -98,21 +134,47 @@ export function GoogleAuthButton({ mode = "continue" }: { mode?: "continue" | "s
       }
     });
     googleApi.renderButton(container, {
+      type: "standard",
       theme: "outline",
       size: "large",
       shape: "rectangular",
       text: mode === "signup" ? "signup_with" : mode === "signin" ? "signin_with" : "continue_with",
-      width: 320,
+      width: variant === "compact" ? 280 : 320,
       logo_alignment: "left"
     });
-  }, [mode, router, scriptLoaded, searchParams, setAuth, toast]);
+  }, [mode, router, scriptLoaded, searchParams, setAuth, toast, variant]);
 
   const hasClientId = Boolean(process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID);
-  if (!hasClientId) return null;
+  const buttonLabel = getButtonLabel(mode);
+  const compact = variant === "compact";
+  const buttonWidth = compact ? 280 : 320;
 
   return (
     <div className="grid gap-3">
-      <div ref={containerRef} className="flex justify-center" />
+      <div className="flex justify-center">
+        {hasClientId ? (
+          <div
+            ref={containerRef}
+            className="overflow-hidden rounded-xl border border-[#dfe5f3] bg-white shadow-sm"
+            style={{ width: `${buttonWidth}px`, minHeight: "52px" }}
+          />
+        ) : (
+          <div
+            className={`overflow-hidden rounded-xl border border-[#dfe5f3] bg-white shadow-sm opacity-60 grayscale ${
+              compact ? "w-[280px]" : "w-[320px]"
+            }`}
+            aria-disabled="true"
+          >
+            <div className="flex h-[52px] items-center justify-center gap-3 px-4 text-sm font-semibold text-[#7d8797]">
+              <GoogleMark />
+              <span>{buttonLabel}</span>
+            </div>
+          </div>
+        )}
+      </div>
+      {!hasClientId ? (
+        <p className="text-center text-xs font-bold text-neutral-500">Google sign-in is not configured yet.</p>
+      ) : null}
       {submitting ? <p className="text-center text-xs font-bold text-neutral-500">Connecting Google account...</p> : null}
     </div>
   );

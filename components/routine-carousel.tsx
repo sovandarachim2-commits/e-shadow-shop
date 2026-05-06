@@ -4,14 +4,13 @@ import Image from "next/image";
 import Link from "next/link";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { Category } from "@/lib/types";
+import { RoutinePoster } from "@/lib/home-hero";
 
 type RoutineCarouselProps = {
-  categories: Category[];
-  fallbackImages: Record<string, string>;
+  posters: RoutinePoster[];
 };
 
-export function RoutineCarousel({ categories, fallbackImages }: RoutineCarouselProps) {
+export function RoutineCarousel({ posters }: RoutineCarouselProps) {
   const scrollerRef = useRef<HTMLDivElement | null>(null);
   const [activeIndex, setActiveIndex] = useState(0);
 
@@ -52,7 +51,7 @@ export function RoutineCarousel({ categories, fallbackImages }: RoutineCarouselP
 
   useEffect(() => {
     const scroller = scrollerRef.current;
-    if (!scroller || categories.length <= 3) return;
+    if (!scroller || posters.length <= 3) return;
 
     const interval = window.setInterval(() => {
       const maxScroll = scroller.scrollWidth - scroller.clientWidth;
@@ -64,20 +63,20 @@ export function RoutineCarousel({ categories, fallbackImages }: RoutineCarouselP
     }, 3200);
 
     return () => window.clearInterval(interval);
-  }, [categories.length]);
+  }, [posters.length]);
 
   return (
     <div className="relative mt-8">
       <div ref={scrollerRef} className="flex snap-x snap-mandatory gap-5 overflow-x-auto scroll-smooth pb-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-        {categories.map((category, index) => (
+        {posters.map((poster, index) => (
           <Link
-            key={category.id}
-            href={`/shop?category=${encodeURIComponent(category.name)}`}
-            className={`group relative aspect-[4/3] w-[82vw] shrink-0 snap-start overflow-hidden rounded-2xl shadow-sm sm:w-[520px] lg:w-[32%] ${["bg-[#f8ded8]", "bg-[#ddf3ff]", "bg-[#e8ddfb]"][index % 3]}`}
+            key={poster.id}
+            href={poster.brand ? `/shop?brand=${encodeURIComponent(poster.brand)}` : "/shop"}
+            className={`group relative aspect-[4/4.8] w-[82vw] shrink-0 snap-start overflow-hidden rounded-2xl shadow-sm sm:w-[540px] lg:w-[34%] ${["bg-[#f8ded8]", "bg-[#ddf3ff]", "bg-[#e8ddfb]"][index % 3]}`}
           >
-            <Image src={category.imageUrl || fallbackImages[category.name] || fallbackImages.Skincare} alt={category.name} fill className="object-cover transition duration-500 group-hover:scale-105" />
+            <Image src={poster.imageUrl} alt={poster.title || poster.brand || "Routine poster"} fill className="object-cover object-center transition duration-500 group-hover:scale-105" unoptimized />
             <div className="absolute inset-0 bg-gradient-to-t from-[#082b4c]/55 via-[#082b4c]/5 to-transparent" />
-            <span className="absolute bottom-5 left-5 font-serif text-2xl font-bold text-white drop-shadow">{category.name}</span>
+            <span className="absolute bottom-5 left-5 font-serif text-2xl font-bold text-white drop-shadow">{poster.title || poster.brand}</span>
           </Link>
         ))}
       </div>
@@ -90,13 +89,13 @@ export function RoutineCarousel({ categories, fallbackImages }: RoutineCarouselP
       </button>
 
       <div className="mt-5 flex items-center justify-center gap-3">
-        {categories.map((category, index) => (
+        {posters.map((poster, index) => (
           <button
-            key={category.id}
+            key={poster.id}
             type="button"
             onClick={() => scrollToIndex(index)}
             className={`h-3 w-3 rounded-full transition ${activeIndex === index ? "bg-[#082b4c]" : "bg-[#082b4c]/35 hover:bg-[#082b4c]/60"}`}
-            aria-label={`Go to ${category.name}`}
+            aria-label={`Go to ${poster.title}`}
           />
         ))}
       </div>

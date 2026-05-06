@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Role } from "@prisma/client";
 import { requireRole } from "@/lib/auth";
-import { defaultHomeHero, getRoutineVideosFromHero } from "@/lib/home-hero";
+import { defaultHomeHero, getRoutinePostersFromHero, getRoutineVideosFromHero } from "@/lib/home-hero";
 import { readSiteSetting, writeSiteSetting } from "@/lib/site-settings";
 
 export async function GET() {
@@ -38,6 +38,14 @@ export async function PUT(request: NextRequest) {
         description: String(video.description || "")
       })).filter((video: { videoUrl: string }) => video.videoUrl)
     : getRoutineVideosFromHero(body);
+  const routinePosters = Array.isArray(body.routinePosters)
+    ? body.routinePosters.slice(0, 12).map((poster: any, index: number) => ({
+        id: String(poster.id || `routine-poster-${index + 1}`),
+        title: String(poster.title || "").trim(),
+        imageUrl: String(poster.imageUrl || "").trim(),
+        brand: String(poster.brand || "").trim()
+      })).filter((poster: { imageUrl: string }) => poster.imageUrl)
+    : getRoutinePostersFromHero(body);
   const hero = {
     eyebrow: String(body.eyebrow || defaultHomeHero.eyebrow),
     title: String(body.title || defaultHomeHero.title),
@@ -56,6 +64,7 @@ export async function PUT(request: NextRequest) {
     routineVideoTitle: String(body.routineVideoTitle || defaultHomeHero.routineVideoTitle),
     routineVideoDescription: String(body.routineVideoDescription || defaultHomeHero.routineVideoDescription),
     routineVideos,
+    routinePosters,
     stats: Array.isArray(body.stats) ? body.stats.slice(0, 3) : defaultHomeHero.stats
   };
 

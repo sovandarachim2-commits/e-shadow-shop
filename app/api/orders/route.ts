@@ -2,7 +2,43 @@ import { NextRequest, NextResponse } from "next/server";
 import { Role } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { getAuthUser, requireRole } from "@/lib/auth";
+import { getBakongPaymentById, getBakongPaymentStatusesByOrderIds, linkBakongPaymentToOrder } from "@/lib/bakong-payment-store";
+import { sendOrderCompletionNotification } from "@/lib/bakong-telegram";
+import { resolveOrderPricing } from "@/lib/order-pricing";
+import { bakongPaymentMethod } from "@/lib/payment-methods";
 import { orderSchema } from "@/lib/validators";
+
+function formatOrderCode(createdAt: Date, sequence: number) {
+  const formatter = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "Asia/Phnom_Penh",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit"
+  });
+  const datePart = formatter.format(createdAt).replace(/-/g, "");
+  return `LKM-${datePart}${String(sequence).padStart(4, "0")}`;
+}
+
+async function buildOrderCode(orderId: string, createdAt: Date) {
+  const localDate = new Date(createdAt.toLocaleString("en-US", { timeZone: "Asia/Phnom_Penh" }));
+  const startOfDay = new Date(localDate);
+  startOfDay.setHours(0, 0, 0, 0);
+  const endOfDay = new Date(localDate);
+  endOfDay.setHours(23, 59, 59, 999);
+
+  const offsetMinutes = -new Date().getTimezoneOffset();
+  const utcStart = new Date(startOfDay.getTime() - offsetMinutes * 60 * 1000);
+  const utcEnd = new Date(endOfDay.getTime() - offsetMinutes * 60 * 1000);
+
+  const dayOrders = await prisma.order.findMany({
+    where: { createdAt: { gte: utcStart, lte: utcEnd } },
+    select: { id: true },
+    orderBy: [{ createdAt: "asc" }, { id: "asc" }]
+  });
+
+  const sequence = Math.max(1, dayOrders.findIndex((entry) => entry.id === orderId) + 1);
+  return formatOrderCode(createdAt, sequence);
+}
 
 export async function GET(request: NextRequest) {
   const user = await getAuthUser(request);
@@ -13,33 +49,39 @@ export async function GET(request: NextRequest) {
     include: { items: { include: { product: true } }, staff: { select: { name: true, commissionRate: true } } },
     orderBy: { createdAt: "desc" }
   });
-  return NextResponse.json({ orders });
+  const paymentStatuses = await getBakongPaymentStatusesByOrderIds(orders.map((order) => order.id));
+  return NextResponse.json({
+    orders: orders.map((order) => ({
+      ...order,
+      paymentStatus: paymentStatuses.get(order.id) === "PAID" ? "COMPLETED" : "PENDING"
+    }))
+  });
 }
 
 export async function POST(request: NextRequest) {
   const body = orderSchema.parse(await request.json());
   const user = await getAuthUser(request);
   if (!user) return NextResponse.json({ message: "Please login before checkout" }, { status: 401 });
+  if (!body.paymentId) {
+    return NextResponse.json({ message: "Payment verification is required before checkout" }, { status: 400 });
+  }
 
-  const productIds = body.items.map((item) => item.productId);
-  const products = await prisma.product.findMany({ where: { id: { in: productIds } } });
-  const productMap = new Map(products.map((product) => [product.id, product]));
-  const orderItems = body.items.map((item) => {
-    const product = productMap.get(item.productId);
-    if (!product) return null;
-    const price = product.isOnSale && product.salePrice ? Number(product.salePrice) : Number(product.price);
-    return { productId: item.productId, quantity: item.quantity, price };
-  });
+  const paymentRecord = await getBakongPaymentById(body.paymentId);
+  if (!paymentRecord || paymentRecord.customerId !== user.id) {
+    return NextResponse.json({ message: "Payment record was not found" }, { status: 404 });
+  }
+  if (paymentRecord.status !== "PAID") {
+    return NextResponse.json({ message: "Payment has not been confirmed yet" }, { status: 400 });
+  }
+  if (paymentRecord.orderId) {
+    return NextResponse.json({ message: "This payment is already linked to an order" }, { status: 400 });
+  }
 
-  if (orderItems.some((item) => !item)) {
+  const pricing = await resolveOrderPricing(body.items);
+  if (!pricing) {
     return NextResponse.json({ message: "One or more products are no longer available" }, { status: 400 });
   }
 
-  const validOrderItems = orderItems as Array<{ productId: string; quantity: number; price: number }>;
-  const subtotal = validOrderItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
-
-  const deliveryFee = 0;
-  const total = subtotal + deliveryFee;
   const order = await prisma.order.create({
     data: {
       customerName: body.customerName,
@@ -48,14 +90,44 @@ export async function POST(request: NextRequest) {
       province: body.province,
       note: body.note,
       contactTelegram: body.contactTelegram,
-      paymentMethod: body.paymentMethod,
-      deliveryFee,
-      total,
+      paymentMethod: bakongPaymentMethod.name,
+      deliveryFee: pricing.deliveryFee,
+      total: pricing.total,
       customerId: user.id,
       staffId: user?.role === Role.STAFF ? user.id : undefined,
-      items: { create: validOrderItems }
+      items: {
+        create: pricing.items.map((item) => ({
+          productId: item.productId,
+          quantity: item.quantity,
+          price: item.price
+        }))
+      }
     },
-    include: { items: true }
+    include: { items: { include: { product: true } } }
   });
+  await linkBakongPaymentToOrder(body.paymentId, order.id);
+
+  try {
+    const orderCode = await buildOrderCode(order.id, order.createdAt);
+    await sendOrderCompletionNotification({
+      orderCode,
+      customerName: order.customerName,
+      phone: order.phone,
+      location: [order.address, order.province].filter(Boolean).join(", "),
+      currency: paymentRecord.currency,
+      deliveryCost: Number(order.deliveryFee),
+      items: order.items.map((item) => ({
+        name: item.product?.name || "Product",
+        quantity: item.quantity,
+        lineTotal: Number(item.price) * item.quantity
+      })),
+      discount: pricing.discount,
+      total: Number(order.total),
+      status: paymentRecord.status === "PAID" ? "PAID" : "UNPAID"
+    });
+  } catch (notificationError) {
+    console.error("Telegram order completion notification failed", notificationError);
+  }
+
   return NextResponse.json({ order }, { status: 201 });
 }

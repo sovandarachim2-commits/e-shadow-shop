@@ -2,7 +2,9 @@
 
 import { create } from "zustand";
 
-type Toast = { id: string; message: string; type?: "success" | "error" };
+const TOAST_DURATION_MS = 5200;
+
+type Toast = { id: string; message: string; type?: "success" | "error"; createdAt: number; durationMs: number };
 
 type ToastStore = {
   toasts: Toast[];
@@ -22,8 +24,8 @@ export const useToastStore = create<ToastStore>((set) => ({
   toasts: [],
   push: (message, type = "success") => {
     const id = createToastId();
-    set((state) => ({ toasts: [...state.toasts, { id, message, type }] }));
-    setTimeout(() => set((state) => ({ toasts: state.toasts.filter((toast) => toast.id !== id) })), 3200);
+    set((state) => ({ toasts: [...state.toasts, { id, message, type, createdAt: Date.now(), durationMs: TOAST_DURATION_MS }] }));
+    setTimeout(() => set((state) => ({ toasts: state.toasts.filter((toast) => toast.id !== id) })), TOAST_DURATION_MS);
   },
   remove: (id) => set((state) => ({ toasts: state.toasts.filter((toast) => toast.id !== id) }))
 }));

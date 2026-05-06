@@ -3,8 +3,9 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
-import { LockKeyhole, Phone, Send, UserRound } from "lucide-react";
+import { LockKeyhole, MousePointerClick, Phone, Send, UserRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { GoogleAuthButton } from "@/components/google-auth-button";
 import { useAuthStore } from "@/lib/auth-store";
 import { DEFAULT_BRAND_NAME, DEFAULT_BRAND_TAGLINE } from "@/lib/site-brand";
 import { useToastStore } from "@/lib/toast-store";
@@ -184,56 +185,63 @@ export default function RegisterPage() {
   }
 
   return (
-    <section className="beauty-surface relative min-h-[calc(100vh-80px)] overflow-hidden py-6 md:py-10">
-      <div className="absolute inset-0 bg-[rgba(8,43,76,0.12)]" />
-      <div className="absolute inset-x-0 top-0 h-56 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.95),_rgba(255,255,255,0))]" />
+    <section className="relative min-h-[calc(100vh-80px)] overflow-hidden bg-[linear-gradient(225deg,#2160ff_0%,#1a4cd6_30%,#f6f7fb_30%,#f6f7fb_100%)] py-6 md:py-10">
+      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.42),transparent_34%),radial-gradient(circle_at_bottom_right,rgba(255,255,255,0.18),transparent_30%)]" />
       <div className="container-page relative grid min-h-[72vh] place-items-center">
-        <form ref={formRef} className="w-full max-w-[640px] rounded-[28px] border border-[#f1dfd8] bg-white px-6 py-10 shadow-[0_28px_80px_rgba(8,43,76,0.18)] md:px-14 md:py-14">
+        <form ref={formRef} className="w-full max-w-[560px] rounded-[34px] border border-white/70 bg-white px-6 py-10 shadow-[0_30px_90px_rgba(10,37,112,0.18)] md:px-12 md:py-12">
           <div className="text-center">
-            <p className="text-5xl font-black leading-[0.9] tracking-[0.04em] text-[#082b4c] md:text-7xl">
+            <p className="text-4xl font-black leading-[0.9] tracking-[0.04em] text-[#19398a] md:text-6xl">
               {brandName.split(" ").map((part, index) => (
                 <span key={`${part}-${index}`} className="block">
                   {part}
                 </span>
               ))}
             </p>
-            <p className="mt-3 text-xs font-black uppercase tracking-[0.5em] text-[#e9897e]">{DEFAULT_BRAND_TAGLINE}</p>
-            <p className="mt-10 text-3xl font-black text-black md:text-5xl">Create account</p>
-            <p className="mt-4 text-base text-neutral-500">Sign up to save your checkout information</p>
+            <p className="mt-3 text-xs font-black uppercase tracking-[0.4em] text-[#4c76ef]">{DEFAULT_BRAND_TAGLINE}</p>
+            <p className="mt-8 text-3xl font-black text-[#1a1a1a] md:text-5xl">Create Account</p>
+            <p className="mt-3 text-base font-medium text-neutral-500">Create an account to start shopping faster</p>
           </div>
 
           <div className="mt-12 grid gap-5">
-            <label className="flex h-16 items-center gap-4 rounded-2xl border border-[#eee3de] bg-[#fffaf7] px-5 text-[#697b91]">
+            <label className="flex h-16 items-center gap-4 rounded-2xl border border-[#2e57d0] bg-white px-5 text-[#697b91] shadow-[0_10px_24px_rgba(46,87,208,0.08)]">
               <UserRound size={21} />
               <input required placeholder="Full Name" value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} className="w-full bg-transparent text-sm outline-none placeholder:text-[#9ba8b8]" />
             </label>
-            <label className="flex h-16 items-center gap-4 rounded-2xl border border-[#eee3de] bg-[#fffaf7] px-5 text-[#697b91]">
+            <label className="flex h-16 items-center gap-4 rounded-2xl border border-transparent bg-[#eef2ff] px-5 text-[#697b91]">
               <UserRound size={21} />
               <input required placeholder="Username" value={form.username} onChange={(event) => setForm({ ...form, username: event.target.value })} className="w-full bg-transparent text-sm outline-none placeholder:text-[#9ba8b8]" />
             </label>
-            <label className="flex h-16 items-center gap-4 rounded-2xl border border-[#eee3de] bg-[#fffaf7] px-5 text-[#697b91]">
+            <label className="flex h-16 items-center gap-4 rounded-2xl border border-transparent bg-[#eef2ff] px-5 text-[#697b91]">
               <Phone size={21} />
               <input required placeholder="Phone Number" value={form.phone} onChange={(event) => setForm({ ...form, phone: event.target.value })} className="w-full bg-transparent text-sm outline-none placeholder:text-[#9ba8b8]" />
             </label>
-            <label className="flex h-16 items-center gap-4 rounded-2xl border border-[#eee3de] bg-[#fffaf7] px-5 text-[#697b91]">
+            <label className="flex h-16 items-center gap-4 rounded-2xl border border-transparent bg-[#eef2ff] px-5 text-[#697b91]">
               <LockKeyhole size={21} />
               <input type="password" required placeholder="Password" value={form.password} onChange={(event) => setForm({ ...form, password: event.target.value })} className="w-full bg-transparent text-sm outline-none placeholder:text-[#9ba8b8]" />
             </label>
-            <label className="flex h-16 items-center gap-4 rounded-2xl border border-[#eee3de] bg-[#fffaf7] px-5 text-[#697b91]">
+            <label className="flex h-16 items-center gap-4 rounded-2xl border border-transparent bg-[#eef2ff] px-5 text-[#697b91]">
               <LockKeyhole size={21} />
               <input type="password" required placeholder="Confirm Password" value={confirmPassword} onChange={(event) => setConfirmPassword(event.target.value)} className="w-full bg-transparent text-sm outline-none placeholder:text-[#9ba8b8]" />
             </label>
           </div>
 
           <div className="mt-10 flex justify-center">
-            <Button type="button" onClick={openVerificationModal} className="h-14 min-w-[260px] rounded-2xl bg-[#082b4c] px-10 text-white shadow-lg hover:bg-[#0d3a64]">
+            <Button type="button" onClick={openVerificationModal} className="h-14 min-w-[280px] rounded-2xl bg-[#2e4fc3] px-10 text-lg font-black text-white shadow-[0_20px_30px_rgba(46,79,195,0.28)] hover:bg-[#2643a7]">
               SIGN UP
             </Button>
           </div>
 
-          <p className="mt-10 border-t border-[#f0e6e0] pt-8 text-center text-base text-neutral-600">
+          <div className="mt-12">
+            <p className="mb-4 flex items-center justify-center gap-2 text-center text-sm font-bold text-[#2e57d0]">
+              <MousePointerClick size={18} className="text-[#e9897e]" />
+              <span>Or continue with</span>
+            </p>
+            <GoogleAuthButton mode="signup" variant="compact" />
+          </div>
+
+          <p className="mt-10 border-t border-[#e8ebf8] pt-8 text-center text-base text-neutral-600">
             Already have an account?{" "}
-            <Link className="font-black text-[#e9897e]" href={`/login${queryString}`}>
+            <Link className="font-black text-[#2e57d0]" href={`/login${queryString}`}>
               Log in
             </Link>
           </p>

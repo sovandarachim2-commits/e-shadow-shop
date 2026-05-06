@@ -4,6 +4,13 @@ export type RoutineMediaLink = {
   icon: string;
 };
 
+export type RoutinePoster = {
+  id: string;
+  title: string;
+  imageUrl: string;
+  brand: string;
+};
+
 export type RoutineVideo = {
   id: string;
   brand: string;
@@ -34,6 +41,7 @@ export type HomeHero = {
   routineVideoTitle: string;
   routineVideoDescription: string;
   routineVideos: RoutineVideo[];
+  routinePosters: RoutinePoster[];
   stats: Array<{ value: string; label: string }>;
 };
 
@@ -65,6 +73,26 @@ export const defaultHomeHero: HomeHero = {
       eyebrow: "Watch Routine",
       title: "Daily Glow Guide",
       description: "Tap play to watch a short routine before choosing your product category."
+    }
+  ],
+  routinePosters: [
+    {
+      id: "routine-poster-1",
+      title: "Skincare",
+      imageUrl: "https://images.unsplash.com/photo-1612817288484-6f916006741a?q=80&w=900&auto=format&fit=crop",
+      brand: "VERSACE"
+    },
+    {
+      id: "routine-poster-2",
+      title: "Makeup",
+      imageUrl: "https://images.unsplash.com/photo-1512496015851-a90fb38ba796?q=80&w=900&auto=format&fit=crop",
+      brand: "ZARA"
+    },
+    {
+      id: "routine-poster-3",
+      title: "Fragrance",
+      imageUrl: "https://images.unsplash.com/photo-1541643600914-78b084683601?q=80&w=900&auto=format&fit=crop",
+      brand: "GUCCI"
     }
   ],
   stats: [
@@ -122,7 +150,7 @@ export function getRoutineVideosFromHero(data: Partial<HomeHero>): RoutineVideo[
     return [
       {
         id: "routine-video-1",
-        brand: String(data.routineVideos?.[0]?.brand || ""),
+        brand: "",
         videoUrl: data.routineVideoUrl || "",
         posterUrl: data.routineVideoPosterUrl || "",
         mediaLink: "",
@@ -135,4 +163,17 @@ export function getRoutineVideosFromHero(data: Partial<HomeHero>): RoutineVideo[
   }
 
   return [];
+}
+
+export function getRoutinePostersFromHero(data: Partial<HomeHero>): RoutinePoster[] {
+  if (!Array.isArray(data.routinePosters)) return [];
+
+  return data.routinePosters
+    .map((poster, index) => ({
+      id: String(poster?.id || `routine-poster-${index + 1}`),
+      title: String(poster?.title || "").trim(),
+      imageUrl: String(poster?.imageUrl || "").trim(),
+      brand: String(poster?.brand || "").trim()
+    }))
+    .filter((poster) => poster.imageUrl);
 }

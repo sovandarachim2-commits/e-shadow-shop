@@ -4,15 +4,19 @@
 
 :root {
   color-scheme: light;
-  --background: #fff1f1;
-  --foreground: #082b4c;
+  --background: #f6f7fb;
+  --foreground: #19398a;
   --surface: #ffffff;
-  --blush-soft: #f8ded8;
+  --blush-soft: #eef2ff;
   --blush: #e9897e;
-  --champagne: #f3c7b8;
-  --champagne-dark: #d76f64;
-  --navy: #082b4c;
-  --muted: #697b91;
+  --champagne: #d8e2ff;
+  --champagne-dark: #4c76ef;
+  --navy: #2e4fc3;
+  --navy-dark: #2643a7;
+  --navy-soft: #2e57d0;
+  --muted: #5f6882;
+  --panel: #eef2ff;
+  --surface-tint: #f9fbff;
 }
 
 .dark {
@@ -49,7 +53,7 @@ select {
 }
 
 .focus-ring:focus-visible {
-  box-shadow: 0 0 0 3px rgba(233, 137, 126, 0.32);
+  box-shadow: 0 0 0 3px rgba(76, 118, 239, 0.24);
 }
 
 .dark .focus-ring:focus-visible {
@@ -58,9 +62,9 @@ select {
 
 .beauty-surface {
   background:
-    radial-gradient(circle at 76% 18%, rgba(248, 222, 216, 0.95), transparent 30%),
-    radial-gradient(circle at 14% 82%, rgba(221, 243, 255, 0.7), transparent 26%),
-    linear-gradient(135deg, #fff8f3 0%, #fff1f1 62%, #f8ded8 100%);
+    radial-gradient(circle at 82% 18%, rgba(76, 118, 239, 0.16), transparent 30%),
+    radial-gradient(circle at 14% 82%, rgba(255, 255, 255, 0.88), transparent 26%),
+    linear-gradient(135deg, #edf2ff 0%, #f6f7fb 52%, #ffffff 100%);
 }
 
 .beauty-gold {
@@ -88,4 +92,15 @@ select {
 .admin-chip {
   border: 1px solid rgba(31, 28, 20, 0.08);
   background: #fff;
+}
+
+.frontend-card {
+  border: 1px solid rgba(216, 226, 255, 0.9);
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 22px 60px rgba(33, 70, 171, 0.08);
+}
+
+.frontend-panel {
+  border: 1px solid rgba(216, 226, 255, 0.82);
+  background: var(--panel);
 }

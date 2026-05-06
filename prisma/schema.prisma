@@ -84,7 +84,7 @@ model Order {
   province     String?
   note         String?
   contactTelegram Boolean @default(false)
-  paymentMethod String    @default("ABA KHQR")
+  paymentMethod String    @default("Bakong KHQR")
   deliveryFee  Decimal    @default(0) @db.Decimal(10, 2)
   total        Decimal     @db.Decimal(10, 2)
   status       OrderStatus @default(PENDING)

@@ -6,9 +6,9 @@ type ButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
 };
 
 const variants = {
-  dark: "bg-[#082b4c] text-white shadow-sm hover:bg-[#0d3a64]",
-  light: "bg-white text-[#082b4c] hover:bg-[#fff8f3]",
-  outline: "border border-[#f3c7b8] bg-white/55 text-[#082b4c] hover:bg-[#fff8f3]",
+  dark: "bg-[var(--navy)] text-white shadow-[0_16px_28px_rgba(46,79,195,0.22)] hover:bg-[var(--navy-dark)]",
+  light: "bg-white text-[var(--foreground)] hover:bg-[var(--surface-tint)]",
+  outline: "border border-[var(--champagne)] bg-white/70 text-[var(--foreground)] hover:bg-[var(--surface-tint)]",
   ghost: "bg-transparent hover:bg-neutral-100 dark:hover:bg-neutral-900"
 };
 
