@@ -8,6 +8,7 @@ import { resolveOrderPricing } from "@/lib/order-pricing";
 import { readSiteSetting } from "@/lib/site-settings";
 
 export const runtime = "nodejs";
+export const preferredRegion = "sin1";
 
 const qrRequestSchema = z.object({
   customerName: z.string().min(2),

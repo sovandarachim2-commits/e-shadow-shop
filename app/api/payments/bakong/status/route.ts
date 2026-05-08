@@ -10,6 +10,7 @@ import { bakongPaymentMethod } from "@/lib/payment-methods";
 import { resolveOrderPricing } from "@/lib/order-pricing";
 
 export const runtime = "nodejs";
+export const preferredRegion = "sin1";
 
 const savedCheckoutPayloadSchema = z.object({
   customerName: z.string().min(2),
