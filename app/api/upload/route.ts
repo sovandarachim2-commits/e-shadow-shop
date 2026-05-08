@@ -44,6 +44,9 @@ export async function POST(request: NextRequest) {
   const formData = await request.formData();
   const file = formData.get("file");
   if (!(file instanceof File)) return NextResponse.json({ message: "Media file is required" }, { status: 400 });
+  if (!file.type.startsWith("image/") && !file.type.startsWith("video/")) {
+    return NextResponse.json({ message: "Only image and video files can be uploaded" }, { status: 400 });
+  }
 
   const bytes = await file.arrayBuffer();
   const buffer = Buffer.from(bytes);
@@ -66,20 +69,34 @@ export async function POST(request: NextRequest) {
   }
 
   if (process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET) {
-    const result = await new Promise<{ secure_url: string }>((resolve, reject) => {
-      const stream = cloudinary.uploader.upload_stream({ folder: cloudinaryFolder, resource_type: "auto" }, (error, uploadResult) => {
-        if (error || !uploadResult) reject(error);
-        else resolve(uploadResult);
+    try {
+      const result = await new Promise<{ secure_url: string }>((resolve, reject) => {
+        const stream = cloudinary.uploader.upload_stream({ folder: cloudinaryFolder, resource_type: "auto" }, (error, uploadResult) => {
+          if (error || !uploadResult) reject(error);
+          else resolve(uploadResult);
+        });
+        stream.end(buffer);
       });
-      stream.end(buffer);
-    });
 
-    return NextResponse.json({ url: result.secure_url });
+      return NextResponse.json({ url: result.secure_url });
+    } catch (error) {
+      console.error(error);
+      return NextResponse.json({ message: "Cloudinary upload failed" }, { status: 500 });
+    }
+  }
+
+  if (process.env.VERCEL) {
+    return NextResponse.json({ message: "Upload storage is not configured. Set R2 or Cloudinary env variables in Vercel." }, { status: 500 });
   }
 
   const uploadDir = path.join(process.cwd(), "public", mediaFolder);
-  await mkdir(uploadDir, { recursive: true });
-  await writeFile(path.join(uploadDir, safeName), buffer);
+  try {
+    await mkdir(uploadDir, { recursive: true });
+    await writeFile(path.join(uploadDir, safeName), buffer);
+  } catch (error) {
+    console.error(error);
+    return NextResponse.json({ message: "Local upload failed" }, { status: 500 });
+  }
 
   return NextResponse.json({ url: `/${storageKey}`, key: storageKey });
 }

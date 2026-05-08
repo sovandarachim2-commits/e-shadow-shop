@@ -9,6 +9,8 @@ import { defaultHomeHero, getRoutinePostersFromHero, HomeHero, RoutinePoster } f
 import { useToastStore } from "@/lib/toast-store";
 import { Brand } from "@/lib/types";
 
+const maxPosterUploadBytes = 4 * 1024 * 1024;
+
 function makeId() {
   return `${Date.now()}-${Math.random().toString(36).slice(2)}`;
 }
@@ -96,23 +98,37 @@ export default function AdminRoutinePosterPage() {
   }
 
   async function uploadPoster(file: File) {
-    setUploading(true);
-    const body = new FormData();
-    body.append("file", file);
-    const response = await fetch("/api/upload", {
-      method: "POST",
-      headers: token ? { Authorization: `Bearer ${token}` } : {},
-      body
-    });
-    const data = await response.json().catch(() => ({}));
-
-    if (response.ok && data.url) {
-      updateDraft({ imageUrl: data.url });
-      toast("Poster uploaded");
-    } else {
-      toast(data.message || "Upload failed", "error");
+    if (!file.type.startsWith("image/")) {
+      toast("Please choose an image file", "error");
+      return;
     }
-    setUploading(false);
+    if (file.size > maxPosterUploadBytes) {
+      toast("Poster image is too large. Please upload an image under 4 MB.", "error");
+      return;
+    }
+
+    setUploading(true);
+    try {
+      const body = new FormData();
+      body.append("file", file);
+      const response = await fetch("/api/upload", {
+        method: "POST",
+        headers: token ? { Authorization: `Bearer ${token}` } : {},
+        body
+      });
+      const data = await response.json().catch(() => ({}));
+
+      if (response.ok && data.url) {
+        updateDraft({ imageUrl: data.url });
+        toast("Poster uploaded");
+      } else {
+        toast(data.message || "Upload failed", "error");
+      }
+    } catch {
+      toast("Upload failed. Please try a smaller image.", "error");
+    } finally {
+      setUploading(false);
+    }
   }
 
   async function submit(event: React.FormEvent) {
@@ -257,7 +273,17 @@ export default function AdminRoutinePosterPage() {
                 <label className="flex min-h-12 cursor-pointer items-center justify-center gap-2 rounded-2xl bg-[#15130f] px-4 text-sm font-black text-white transition hover:bg-[#2b261d]">
                   <UploadCloud size={18} />
                   {uploading ? "Uploading poster..." : "Upload poster"}
-                  <input type="file" accept="image/*" className="sr-only" onChange={(event) => event.target.files?.[0] && uploadPoster(event.target.files[0])} />
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="sr-only"
+                    disabled={uploading}
+                    onChange={(event) => {
+                      const file = event.target.files?.[0];
+                      if (file) uploadPoster(file);
+                      event.target.value = "";
+                    }}
+                  />
                 </label>
               </div>
 
