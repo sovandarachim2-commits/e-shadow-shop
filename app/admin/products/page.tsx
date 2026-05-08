@@ -8,6 +8,7 @@ import { Input, Textarea } from "@/components/ui/input";
 import { AdminConfirmDialog } from "@/components/admin-confirm-dialog";
 import { Brand, Category, Product } from "@/lib/types";
 import { money } from "@/lib/format";
+import { validateImageUpload } from "@/lib/media-upload";
 import { useAuthStore } from "@/lib/auth-store";
 import { useToastStore } from "@/lib/toast-store";
 
@@ -88,6 +89,12 @@ export default function AdminProductsPage() {
   }, []);
 
   async function upload(file: File) {
+    const validationError = validateImageUpload(file);
+    if (validationError) {
+      toast(validationError, "error");
+      return;
+    }
+
     const localPreview = URL.createObjectURL(file);
     setPreviewUrl(localPreview);
     setUploading(true);
@@ -96,11 +103,11 @@ export default function AdminProductsPage() {
     const headers: HeadersInit = token ? { Authorization: `Bearer ${token}` } : {};
     try {
       const response = await fetch("/api/upload", { method: "POST", headers, body });
-      const data = await response.json();
+      const data = await response.json().catch(() => ({}));
       if (response.ok) setForm((current) => ({ ...current, imageUrl: data.url }));
       else toast(data.message || "Upload failed", "error");
     } catch {
-      toast("Upload failed", "error");
+      toast("Upload failed. Please try a smaller image.", "error");
     } finally {
       setUploading(false);
     }
@@ -349,7 +356,16 @@ export default function AdminProductsPage() {
             <label className="mt-4 flex cursor-pointer items-center justify-center gap-2 rounded-2xl bg-white px-4 py-3 text-sm font-black text-[#15130f] transition hover:bg-[#ffdc1f]">
               <UploadCloud size={18} />
               Upload product image
-              <input type="file" accept="image/*" onChange={(e) => e.target.files?.[0] && upload(e.target.files[0])} className="sr-only" />
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(event) => {
+                  const file = event.target.files?.[0];
+                  if (file) upload(file);
+                  event.target.value = "";
+                }}
+                className="sr-only"
+              />
             </label>
             <p className="mt-3 text-center text-xs font-bold text-white/60">
               {uploading ? "Uploading image..." : form.imageUrl ? "Image ready for product save." : "Choose an image before saving."}

@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { AdminConfirmDialog } from "@/components/admin-confirm-dialog";
 import { Category } from "@/lib/types";
+import { validateImageUpload } from "@/lib/media-upload";
 import { useAuthStore } from "@/lib/auth-store";
 import { useToastStore } from "@/lib/toast-store";
 
@@ -78,13 +79,23 @@ export default function AdminCategoriesPage() {
   }
 
   async function uploadImage(file: File) {
-    const body = new FormData();
-    body.append("file", file);
-    const response = await fetch("/api/upload", { method: "POST", headers: headers(), body });
-    const data = await response.json().catch(() => ({}));
-    if (!response.ok) return toast(data.message || "Image upload failed", "error");
-    setForm((current) => ({ ...current, imageUrl: data.url }));
-    toast("Category image uploaded");
+    const validationError = validateImageUpload(file);
+    if (validationError) {
+      toast(validationError, "error");
+      return;
+    }
+
+    try {
+      const body = new FormData();
+      body.append("file", file);
+      const response = await fetch("/api/upload", { method: "POST", headers: headers(), body });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) return toast(data.message || "Image upload failed", "error");
+      setForm((current) => ({ ...current, imageUrl: data.url }));
+      toast("Category image uploaded");
+    } catch {
+      toast("Image upload failed. Please try a smaller image.", "error");
+    }
   }
 
   return (
@@ -144,7 +155,16 @@ export default function AdminCategoriesPage() {
                 <label className="flex h-11 cursor-pointer items-center justify-center gap-2 rounded-2xl bg-[#15130f] px-4 text-sm font-black text-white hover:bg-[#2b261d]">
                   <UploadCloud size={17} />
                   Upload image
-                  <input type="file" accept="image/*" onChange={(event) => event.target.files?.[0] && uploadImage(event.target.files[0])} className="sr-only" />
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(event) => {
+                      const file = event.target.files?.[0];
+                      if (file) uploadImage(file);
+                      event.target.value = "";
+                    }}
+                    className="sr-only"
+                  />
                 </label>
               </div>
               <label className="grid gap-2 text-sm font-black text-[#15130f]">

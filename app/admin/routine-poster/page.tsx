@@ -6,10 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuthStore } from "@/lib/auth-store";
 import { defaultHomeHero, getRoutinePostersFromHero, HomeHero, RoutinePoster } from "@/lib/home-hero";
+import { validateImageUpload } from "@/lib/media-upload";
 import { useToastStore } from "@/lib/toast-store";
 import { Brand } from "@/lib/types";
-
-const maxPosterUploadBytes = 4 * 1024 * 1024;
 
 function makeId() {
   return `${Date.now()}-${Math.random().toString(36).slice(2)}`;
@@ -98,12 +97,9 @@ export default function AdminRoutinePosterPage() {
   }
 
   async function uploadPoster(file: File) {
-    if (!file.type.startsWith("image/")) {
-      toast("Please choose an image file", "error");
-      return;
-    }
-    if (file.size > maxPosterUploadBytes) {
-      toast("Poster image is too large. Please upload an image under 4 MB.", "error");
+    const validationError = validateImageUpload(file);
+    if (validationError) {
+      toast(validationError, "error");
       return;
     }
 
