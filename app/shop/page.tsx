@@ -126,7 +126,9 @@ function ShopPageContent() {
     return Array.from(new Set(allProducts.map((product) => product.brand).filter(Boolean)));
   }, [allProducts]);
   const productBrands = useMemo(() => {
-    return productBrandNames.map((name) => brands.find((item) => item.name === name) || { id: name, name, logoUrl: null, sortOrder: 0, isActive: true });
+    return brands.length
+      ? brands
+      : productBrandNames.map((name) => ({ id: name, name, logoUrl: null, sortOrder: 0, isActive: true }));
   }, [brands, productBrandNames]);
   const promotionBrandNames = useMemo(() => {
     return Array.from(new Set(promotionProducts.map((product) => product.brand).filter(Boolean)));

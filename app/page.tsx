@@ -128,7 +128,7 @@ export default async function HomePage() {
   const topSellingProducts = await getTopSellingProducts();
   const productBrandNames = new Set(products.map((product) => product.brand).filter(Boolean));
   const displayBrands = brands.length
-    ? brands.filter((brand) => productBrandNames.has(brand.name))
+    ? brands
     : ["VERSACE", "ZARA", "GUCCI", "PRADA", "Calvin Klein"]
         .filter((name) => productBrandNames.has(name))
         .map((name, index) => ({ id: name, name, logoUrl: null, sortOrder: index, isActive: true }));
