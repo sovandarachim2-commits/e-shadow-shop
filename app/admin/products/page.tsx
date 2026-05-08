@@ -8,7 +8,7 @@ import { Input, Textarea } from "@/components/ui/input";
 import { AdminConfirmDialog } from "@/components/admin-confirm-dialog";
 import { Brand, Category, Product } from "@/lib/types";
 import { money } from "@/lib/format";
-import { validateImageUpload } from "@/lib/media-upload";
+import { prepareImageForUpload } from "@/lib/media-upload";
 import { useAuthStore } from "@/lib/auth-store";
 import { useToastStore } from "@/lib/toast-store";
 
@@ -89,23 +89,27 @@ export default function AdminProductsPage() {
   }, []);
 
   async function upload(file: File) {
-    const validationError = validateImageUpload(file);
-    if (validationError) {
-      toast(validationError, "error");
+    const prepared = await prepareImageForUpload(file);
+    if (prepared.error || !prepared.file) {
+      toast(prepared.error || "Upload failed", "error");
       return;
     }
 
-    const localPreview = URL.createObjectURL(file);
+    const localPreview = URL.createObjectURL(prepared.file);
     setPreviewUrl(localPreview);
     setUploading(true);
     const body = new FormData();
-    body.append("file", file);
+    body.append("file", prepared.file);
     const headers: HeadersInit = token ? { Authorization: `Bearer ${token}` } : {};
     try {
       const response = await fetch("/api/upload", { method: "POST", headers, body });
       const data = await response.json().catch(() => ({}));
-      if (response.ok) setForm((current) => ({ ...current, imageUrl: data.url }));
-      else toast(data.message || "Upload failed", "error");
+      if (response.ok) {
+        setForm((current) => ({ ...current, imageUrl: data.url }));
+        toast(prepared.compressed ? "Image compressed and uploaded" : "Image uploaded");
+      } else {
+        toast(data.message || "Upload failed", "error");
+      }
     } catch {
       toast("Upload failed. Please try a smaller image.", "error");
     } finally {

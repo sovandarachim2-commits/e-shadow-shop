@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { AdminConfirmDialog } from "@/components/admin-confirm-dialog";
 import { Category } from "@/lib/types";
-import { validateImageUpload } from "@/lib/media-upload";
+import { prepareImageForUpload } from "@/lib/media-upload";
 import { useAuthStore } from "@/lib/auth-store";
 import { useToastStore } from "@/lib/toast-store";
 
@@ -79,20 +79,20 @@ export default function AdminCategoriesPage() {
   }
 
   async function uploadImage(file: File) {
-    const validationError = validateImageUpload(file);
-    if (validationError) {
-      toast(validationError, "error");
+    const prepared = await prepareImageForUpload(file);
+    if (prepared.error || !prepared.file) {
+      toast(prepared.error || "Image upload failed", "error");
       return;
     }
 
     try {
       const body = new FormData();
-      body.append("file", file);
+      body.append("file", prepared.file);
       const response = await fetch("/api/upload", { method: "POST", headers: headers(), body });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) return toast(data.message || "Image upload failed", "error");
       setForm((current) => ({ ...current, imageUrl: data.url }));
-      toast("Category image uploaded");
+      toast(prepared.compressed ? "Category image compressed and uploaded" : "Category image uploaded");
     } catch {
       toast("Image upload failed. Please try a smaller image.", "error");
     }

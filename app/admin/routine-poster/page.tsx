@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuthStore } from "@/lib/auth-store";
 import { defaultHomeHero, getRoutinePostersFromHero, HomeHero, RoutinePoster } from "@/lib/home-hero";
-import { validateImageUpload } from "@/lib/media-upload";
+import { prepareImageForUpload } from "@/lib/media-upload";
 import { useToastStore } from "@/lib/toast-store";
 import { Brand } from "@/lib/types";
 
@@ -97,16 +97,16 @@ export default function AdminRoutinePosterPage() {
   }
 
   async function uploadPoster(file: File) {
-    const validationError = validateImageUpload(file);
-    if (validationError) {
-      toast(validationError, "error");
+    const prepared = await prepareImageForUpload(file);
+    if (prepared.error || !prepared.file) {
+      toast(prepared.error || "Upload failed", "error");
       return;
     }
 
     setUploading(true);
     try {
       const body = new FormData();
-      body.append("file", file);
+      body.append("file", prepared.file);
       const response = await fetch("/api/upload", {
         method: "POST",
         headers: token ? { Authorization: `Bearer ${token}` } : {},
@@ -116,7 +116,7 @@ export default function AdminRoutinePosterPage() {
 
       if (response.ok && data.url) {
         updateDraft({ imageUrl: data.url });
-        toast("Poster uploaded");
+        toast(prepared.compressed ? "Poster compressed and uploaded" : "Poster uploaded");
       } else {
         toast(data.message || "Upload failed", "error");
       }

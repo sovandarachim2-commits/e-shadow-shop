@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { AdminConfirmDialog } from "@/components/admin-confirm-dialog";
 import { Brand } from "@/lib/types";
-import { validateImageUpload } from "@/lib/media-upload";
+import { prepareImageForUpload } from "@/lib/media-upload";
 import { useAuthStore } from "@/lib/auth-store";
 import { useToastStore } from "@/lib/toast-store";
 
@@ -79,20 +79,20 @@ export default function AdminBrandsPage() {
   }
 
   async function uploadLogo(file: File) {
-    const validationError = validateImageUpload(file);
-    if (validationError) {
-      toast(validationError, "error");
+    const prepared = await prepareImageForUpload(file);
+    if (prepared.error || !prepared.file) {
+      toast(prepared.error || "Logo upload failed", "error");
       return;
     }
 
     try {
       const body = new FormData();
-      body.append("file", file);
+      body.append("file", prepared.file);
       const response = await fetch("/api/upload", { method: "POST", headers: headers(), body });
       const data = await response.json().catch(() => ({}));
       if (!response.ok) return toast(data.message || "Logo upload failed", "error");
       setForm((current) => ({ ...current, logoUrl: data.url }));
-      toast("Logo uploaded");
+      toast(prepared.compressed ? "Logo compressed and uploaded" : "Logo uploaded");
     } catch {
       toast("Logo upload failed. Please try a smaller image.", "error");
     }
