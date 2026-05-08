@@ -41,6 +41,10 @@ function normalizeHero(data: Partial<HomeHero>): HomeHero {
   return next;
 }
 
+function replaceVideoAtIndex(videos: RoutineVideo[], index: number, video: RoutineVideo) {
+  return videos.map((currentVideo, videoIndex) => (videoIndex === index ? video : currentVideo));
+}
+
 export default function AdminRoutineVideoPage() {
   const token = useAuthStore((state) => state.token);
   const toast = useToastStore((state) => state.push);
@@ -127,20 +131,29 @@ export default function AdminRoutineVideoPage() {
 
   async function saveRoutineVideos(routineVideos: RoutineVideo[], successMessage: string) {
     setSaving(true);
-    const response = await fetch("/api/settings/home", {
-      method: "PUT",
-      headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) },
-      body: JSON.stringify({ ...hero, routineVideos })
-    });
-    setSaving(false);
-    if (!response.ok) {
+    try {
+      const response = await fetch("/api/settings/home", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}) },
+        body: JSON.stringify({ ...hero, routineVideos })
+      });
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        toast(data.message || "Could not save routine videos", "error");
+        return false;
+      }
+
+      const savedHero = normalizeHero(data.hero || { ...hero, routineVideos });
+      setHero(savedHero);
+      toast(successMessage);
+      return true;
+    } catch {
       toast("Could not save routine videos", "error");
       return false;
+    } finally {
+      setSaving(false);
     }
-
-    setHero((current) => ({ ...current, routineVideos }));
-    toast(successMessage);
-    return true;
   }
 
   async function removeVideo(index: number) {
@@ -177,6 +190,8 @@ export default function AdminRoutineVideoPage() {
     const normalizedVideo = {
       ...draftVideo,
       brand: draftVideo.brand.trim(),
+      videoUrl: draftVideo.videoUrl.trim(),
+      posterUrl: draftVideo.posterUrl.trim(),
       mediaLink: "",
       mediaLinks: (draftVideo.mediaLinks || [])
         .map((link, index) => ({
@@ -191,10 +206,7 @@ export default function AdminRoutineVideoPage() {
     };
     const nextRoutineVideos = editingIndex === null
       ? [normalizedVideo, ...hero.routineVideos]
-      : [
-          normalizedVideo,
-          ...hero.routineVideos.filter((_, index) => index !== editingIndex)
-        ];
+      : replaceVideoAtIndex(hero.routineVideos, editingIndex, normalizedVideo);
     const saved = await saveRoutineVideos(nextRoutineVideos, editingIndex === null ? "Routine video added" : "Routine video updated");
     if (saved) closeModal();
   }
