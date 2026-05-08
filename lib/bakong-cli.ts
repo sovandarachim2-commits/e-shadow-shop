@@ -45,6 +45,16 @@ function toNumber(input: unknown, fallback: number) {
   return Number.isFinite(value) && value > 0 ? value : fallback;
 }
 
+function normalizeConfigValue(input: unknown) {
+  return String(input || "").trim().replace(/^["']|["']$/g, "").trim();
+}
+
+function normalizeBakongToken(input: unknown) {
+  const value = normalizeConfigValue(input);
+  const withoutKey = value.replace(/^BAKONG_TOKEN\s*=\s*/i, "").trim();
+  return withoutKey.replace(/^Bearer\s+/i, "").trim();
+}
+
 function parseConfigFile() {
   const configPath = path.join(bakongGeneratorDir, "config.json");
   if (!existsSync(configPath)) return {} as Record<string, unknown>;
@@ -64,11 +74,11 @@ function loadBakongConfig() {
   const currencyRaw = String(env.BAKONG_CURRENCY || fileConfig.currency || "USD").trim().toUpperCase();
 
   cachedBakongConfig = {
-    token: String(env.BAKONG_TOKEN || fileConfig.token || "").trim(),
-    statusUrl: String(env.BAKONG_STATUS_URL || fileConfig.status_url || "https://api-bakong.nbc.gov.kh/v1/check_transaction_by_md5").trim(),
-    accountId: String(env.BAKONG_ACCOUNT_ID || fileConfig.bakong_account_id || "").trim(),
-    merchantName: String(env.BAKONG_MERCHANT_NAME || fileConfig.merchant_name || "").trim(),
-    merchantCity: String(env.BAKONG_MERCHANT_CITY || fileConfig.merchant_city || "").trim(),
+    token: normalizeBakongToken(env.BAKONG_TOKEN || fileConfig.token),
+    statusUrl: normalizeConfigValue(env.BAKONG_STATUS_URL || fileConfig.status_url || "https://api-bakong.nbc.gov.kh/v1/check_transaction_by_md5"),
+    accountId: normalizeConfigValue(env.BAKONG_ACCOUNT_ID || fileConfig.bakong_account_id),
+    merchantName: normalizeConfigValue(env.BAKONG_MERCHANT_NAME || fileConfig.merchant_name),
+    merchantCity: normalizeConfigValue(env.BAKONG_MERCHANT_CITY || fileConfig.merchant_city),
     currency: currencyRaw === "KHR" ? "KHR" : "USD",
     expirationMinutes: toNumber(env.BAKONG_EXPIRATION_MINUTES || fileConfig.expiration_minutes, 2),
     qrSize: toNumber(env.BAKONG_QR_SIZE || fileConfig.qr_size, 220)
