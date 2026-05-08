@@ -259,6 +259,15 @@ export default function CheckoutPage() {
       }
 
       if (data.status === "PAID") {
+        if (data.orderId) {
+          setPaymentSession(null);
+          clear();
+          setPaymentSuccessMessage("Payment successful");
+          toast("Payment successful");
+          router.push("/orders");
+          return;
+        }
+
         setPaymentSession((current) =>
           current && current.md5 === paymentReference
             ? {
@@ -290,7 +299,7 @@ export default function CheckoutPage() {
       cancelled = true;
       window.clearInterval(timer);
     };
-  }, [finalizeOrder, paymentId, paymentReference, paymentStatus, token]);
+  }, [clear, finalizeOrder, paymentId, paymentReference, paymentStatus, router, toast, token]);
 
   return (
     <section className="container-page py-12">

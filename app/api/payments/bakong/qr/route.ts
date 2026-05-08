@@ -43,6 +43,7 @@ export async function POST(request: NextRequest) {
     const payment = await generateBakongQr(pricing.total);
     const paymentRecord = await createBakongPayment({
       customerId: user.id,
+      orderPayload: body,
       customerName: body.customerName,
       phone: body.phone,
       address: body.address,

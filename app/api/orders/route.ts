@@ -96,6 +96,13 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ message: "Payment has not been confirmed yet" }, { status: 400 });
   }
   if (paymentRecord.orderId) {
+    const existingOrder = await prisma.order.findUnique({
+      where: { id: paymentRecord.orderId },
+      include: { items: { include: { product: true } } }
+    });
+    if (existingOrder) {
+      return NextResponse.json({ order: existingOrder, alreadyCreated: true });
+    }
     return NextResponse.json({ message: "This payment is already linked to an order" }, { status: 400 });
   }
 

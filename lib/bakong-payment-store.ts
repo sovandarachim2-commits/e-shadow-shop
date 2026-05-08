@@ -5,6 +5,7 @@ export type BakongPaymentRecord = {
   id: string;
   customerId: string;
   orderId: string | null;
+  orderPayload: string | null;
   customerName: string;
   phone: string;
   address: string;
@@ -36,6 +37,7 @@ type BakongPaymentRow = Omit<BakongPaymentRecord, "contactTelegram" | "amount" |
 
 type CreateBakongPaymentInput = {
   customerId: string;
+  orderPayload?: unknown;
   customerName: string;
   phone: string;
   address: string;
@@ -69,6 +71,7 @@ export async function ensureBakongPaymentTable() {
       id VARCHAR(191) NOT NULL,
       customerId VARCHAR(191) NOT NULL,
       orderId VARCHAR(191) NULL,
+      orderPayload LONGTEXT NULL,
       customerName VARCHAR(191) NOT NULL,
       phone VARCHAR(191) NOT NULL,
       address TEXT NOT NULL,
@@ -95,6 +98,13 @@ export async function ensureBakongPaymentTable() {
       KEY BakongPayment_status_idx (status)
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
   `);
+
+  const columns = await prisma.$queryRawUnsafe<Array<{ COLUMN_NAME: string }>>(
+    "SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'BakongPayment' AND COLUMN_NAME = 'orderPayload'"
+  );
+  if (!columns.length) {
+    await prisma.$executeRawUnsafe("ALTER TABLE BakongPayment ADD COLUMN orderPayload LONGTEXT NULL AFTER orderId");
+  }
 }
 
 export async function createBakongPayment(input: CreateBakongPaymentInput) {
@@ -107,10 +117,11 @@ export async function createBakongPayment(input: CreateBakongPaymentInput) {
 
   await prisma.$executeRawUnsafe(
     `INSERT INTO BakongPayment
-      (id, customerId, customerName, phone, address, province, note, contactTelegram, md5, qrUrl, currency, amount, subtotal, deliveryFee, total, status, expiresAt)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'PENDING', ?)`,
+      (id, customerId, orderPayload, customerName, phone, address, province, note, contactTelegram, md5, qrUrl, currency, amount, subtotal, deliveryFee, total, status, expiresAt)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'PENDING', ?)`,
     id,
     input.customerId,
+    input.orderPayload ? JSON.stringify(input.orderPayload) : null,
     input.customerName,
     input.phone,
     input.address,
