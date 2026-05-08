@@ -277,7 +277,7 @@ export default function CheckoutPage() {
           ? {
               ...current,
               status: "WAITING",
-              message: "Waiting for Bakong payment confirmation..."
+              message: data.message || "Waiting for Bakong payment confirmation..."
             }
           : current
       );

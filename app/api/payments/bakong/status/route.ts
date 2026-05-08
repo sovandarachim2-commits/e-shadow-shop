@@ -23,14 +23,23 @@ export async function GET(request: NextRequest) {
   }
 
   try {
+    if (paymentRecord.status === "PAID") {
+      return NextResponse.json({ success: true, status: "PAID", paymentId: paymentRecord.id });
+    }
+
     const payment = await checkBakongStatus(paymentRecord.md5);
     if (payment.success === false) {
       await updateBakongPaymentStatus({
         id: paymentRecord.id,
-        status: "ERROR",
+        status: "PENDING",
         lastError: payment.error || "Could not check payment status"
       });
-      return NextResponse.json(payment, { status: 500 });
+      return NextResponse.json({
+        success: true,
+        status: "UNPAID",
+        paymentId: paymentRecord.id,
+        message: payment.error || "Still waiting for Bakong payment confirmation"
+      });
     }
 
     if (payment.status === "PAID") {
@@ -41,19 +50,17 @@ export async function GET(request: NextRequest) {
         lastError: null,
         paidAt
       });
-      if (paymentRecord.status !== "PAID") {
-        try {
-          await sendBakongPaymentSuccessNotification({
-            customerName: paymentRecord.customerName,
-            email: user.email,
-            amount: paymentRecord.total,
-            currency: paymentRecord.currency,
-            transactionId: paymentRecord.md5,
-            paidAt
-          });
-        } catch (notificationError) {
-          console.error("Bakong Telegram group notification failed", notificationError);
-        }
+      try {
+        await sendBakongPaymentSuccessNotification({
+          customerName: paymentRecord.customerName,
+          email: user.email,
+          amount: paymentRecord.total,
+          currency: paymentRecord.currency,
+          transactionId: paymentRecord.md5,
+          paidAt
+        });
+      } catch (notificationError) {
+        console.error("Bakong Telegram group notification failed", notificationError);
       }
     } else {
       await updateBakongPaymentStatus({
@@ -66,14 +73,23 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ ...payment, paymentId: paymentRecord.id });
   } catch (error) {
+    const message = error instanceof Error ? error.message : "Could not check payment status";
+    console.error("Bakong payment status check failed", {
+      paymentId: paymentRecord.id,
+      md5: paymentRecord.md5,
+      message
+    });
+
     await updateBakongPaymentStatus({
       id: paymentRecord.id,
-      status: "ERROR",
-      lastError: error instanceof Error ? error.message : "Could not check payment status"
+      status: "PENDING",
+      lastError: message
     });
-    return NextResponse.json(
-      { success: false, status: "UNPAID", message: error instanceof Error ? error.message : "Could not check payment status" },
-      { status: 500 }
-    );
+    return NextResponse.json({
+      success: true,
+      status: "UNPAID",
+      paymentId: paymentRecord.id,
+      message: "Still checking Bakong payment confirmation"
+    });
   }
 }

@@ -27,6 +27,17 @@ type BakongRuntimeConfig = {
   qrSize: number;
 };
 
+type BakongStatusServiceResponse = {
+  success?: boolean;
+  status?: "PAID" | "UNPAID" | string;
+  error?: string;
+  message?: string;
+  responseCode?: number;
+  data?: {
+    acknowledgedDateMs?: number | string;
+  };
+};
+
 let cachedBakongConfig: BakongRuntimeConfig | null = null;
 
 function toNumber(input: unknown, fallback: number) {
@@ -211,9 +222,9 @@ async function checkBakongStatusNative(md5: string, overrideUrl?: string): Promi
     throw new Error("Could not check payment status");
   }
 
-  let parsed: { responseCode?: number; data?: { acknowledgedDateMs?: number | string } };
+  let parsed: BakongStatusServiceResponse;
   try {
-    parsed = JSON.parse(raw) as { responseCode?: number; data?: { acknowledgedDateMs?: number | string } };
+    parsed = JSON.parse(raw) as BakongStatusServiceResponse;
   } catch {
     const responsePreview = raw.replace(/\s+/g, " ").slice(0, 240);
     console.error("Invalid Bakong status response", {
@@ -224,7 +235,12 @@ async function checkBakongStatusNative(md5: string, overrideUrl?: string): Promi
     throw new Error(`Invalid response from Bakong status service (${response.status})`);
   }
 
-  const paid = parsed.responseCode === 0 && Boolean(parsed.data?.acknowledgedDateMs);
+  if (!response.ok || parsed.success === false) {
+    const detail = parsed.error || parsed.message || `Bakong status service rejected request (${response.status})`;
+    throw new Error(detail);
+  }
+
+  const paid = parsed.status === "PAID" || (parsed.responseCode === 0 && Boolean(parsed.data?.acknowledgedDateMs));
   return {
     success: true,
     status: paid ? "PAID" : "UNPAID"
