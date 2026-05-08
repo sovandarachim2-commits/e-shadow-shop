@@ -215,7 +215,13 @@ async function checkBakongStatusNative(md5: string, overrideUrl?: string): Promi
   try {
     parsed = JSON.parse(raw) as { responseCode?: number; data?: { acknowledgedDateMs?: number | string } };
   } catch {
-    throw new Error("Invalid response from Bakong status service");
+    const responsePreview = raw.replace(/\s+/g, " ").slice(0, 240);
+    console.error("Invalid Bakong status response", {
+      status: response.status,
+      contentType: response.headers.get("content-type"),
+      body: responsePreview
+    });
+    throw new Error(`Invalid response from Bakong status service (${response.status})`);
   }
 
   const paid = parsed.responseCode === 0 && Boolean(parsed.data?.acknowledgedDateMs);
