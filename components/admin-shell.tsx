@@ -66,24 +66,24 @@ const groups = [
 function AdminMenuContent({ pathname, onNavigate }: { pathname: string | null; onNavigate?: () => void }) {
   return (
     <>
-      <div className="flex items-center justify-between rounded-[22px] border border-neutral-200 bg-white p-4">
+      <div className="flex items-center justify-between rounded-[24px] border border-white/10 bg-[#202733] p-4">
         <div className="flex items-center gap-3">
-          <span className="grid h-12 w-12 place-items-center rounded-2xl bg-[#ffdc1f] text-[#14120d]">
+          <span className="grid h-12 w-12 place-items-center rounded-2xl bg-[#5bc5f2] text-white shadow-[0_12px_28px_rgba(91,197,242,0.22)]">
             <Package size={23} />
           </span>
           <div>
-            <p className="text-xs font-bold text-neutral-500">Team</p>
-            <p className="text-xl font-black text-[#15130f]">Product</p>
+            <p className="text-xs font-bold text-slate-400">Admin Tools</p>
+            <p className="text-xl font-black text-white">E Shadow</p>
           </div>
         </div>
-        <ChevronDown size={20} className="text-neutral-400" />
+        <ChevronDown size={20} className="text-slate-500" />
       </div>
 
-      <nav className="mt-7 grid gap-6">
+      <nav className="mt-8 grid gap-7">
         {groups.map((group) => (
           <div key={group.label}>
-            <p className="mb-2 px-2 text-xs font-black uppercase tracking-[0.08em] text-neutral-400">{group.label}</p>
-            <div className="grid gap-1">
+            <p className="mb-3 px-2 text-[11px] font-black uppercase tracking-[0.12em] text-slate-500">{group.label}</p>
+            <div className="grid gap-2">
               {group.links.map((link) => {
                 const Icon = link.icon;
                 const active = pathname === link.href;
@@ -93,10 +93,10 @@ function AdminMenuContent({ pathname, onNavigate }: { pathname: string | null; o
                     href={link.href}
                     onClick={onNavigate}
                     className={`flex min-h-12 items-center gap-3 rounded-xl px-4 text-[15px] font-black transition ${
-                      active ? "bg-[#ffdc1f] text-[#15130f]" : "text-[#28241d] hover:bg-[#f4f1eb]"
+                      active ? "bg-[#263a4d] text-[#5bc5f2] shadow-[inset_0_0_0_1px_rgba(91,197,242,0.1)]" : "text-slate-300 hover:bg-[#202733] hover:text-white"
                     }`}
                   >
-                    <Icon size={19} className={active ? "text-[#15130f]" : "text-neutral-400"} />
+                    <Icon size={19} className={active ? "text-[#5bc5f2]" : "text-slate-500"} />
                     {link.label}
                   </Link>
                 );
@@ -106,10 +106,10 @@ function AdminMenuContent({ pathname, onNavigate }: { pathname: string | null; o
         ))}
       </nav>
 
-      <div className="mt-8 rounded-[22px] bg-[#15130f] p-5 text-white">
-        <Sparkles size={22} className="text-[#ffdc1f]" />
+      <div className="mt-8 rounded-[24px] border border-white/10 bg-[#202733] p-5 text-white">
+        <Sparkles size={22} className="text-[#5bc5f2]" />
         <p className="mt-3 text-sm font-black">Lumina Admin</p>
-        <p className="mt-1 text-xs leading-5 text-white/60">Beauty stock, sales, and staff in one clean desk.</p>
+        <p className="mt-1 text-xs leading-5 text-slate-400">Sales, products, reports, and staff in one clean desk.</p>
       </div>
     </>
   );
@@ -150,43 +150,43 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
 
   return (
     <section className="admin-workspace">
-      <div className="grid min-h-screen w-full gap-0 px-3 py-3 lg:grid-cols-[310px_1fr] lg:px-4">
-        <aside className="admin-card sticky top-3 hidden h-[calc(100vh-24px)] overflow-y-auto rounded-[28px] p-5 lg:block">
+      <div className="grid min-h-screen w-full gap-0 px-3 py-3 lg:grid-cols-[300px_1fr] lg:px-6 lg:py-6">
+        <aside className="sticky top-6 hidden h-[calc(100vh-48px)] overflow-y-auto rounded-[28px] border border-[#252e3b] bg-[#171d26] p-5 shadow-[0_22px_60px_rgba(15,23,42,0.14)] lg:block">
           <AdminMenuContent pathname={pathname} />
         </aside>
 
         <div className="min-w-0 lg:pl-6">
-          <header className="admin-card sticky top-3 z-20 mb-4 flex min-h-20 items-center justify-between gap-4 rounded-[26px] px-5">
+          <header className="admin-card sticky top-3 z-20 mb-5 flex min-h-20 items-center justify-between gap-4 rounded-[26px] px-5 lg:top-6">
             <div className="flex min-w-0 items-center gap-3">
               <button
                 type="button"
                 aria-label="Open admin menu"
                 onClick={() => setMobileMenuOpen(true)}
-                className="grid h-12 w-12 shrink-0 place-items-center rounded-full border border-neutral-200 bg-white text-[#15130f] lg:hidden"
+                className="grid h-12 w-12 shrink-0 place-items-center rounded-full border border-[#dce9f5] bg-white text-[#1d2530] lg:hidden"
               >
                 <Menu size={20} />
               </button>
               <div className="min-w-0">
-                <p className="text-sm font-bold text-neutral-500">Good morning,</p>
-                <h1 className="truncate text-2xl font-black text-[#15130f]">{user?.name || "Admin"}</h1>
+                <p className="text-sm font-bold text-[#8b9aae]">Welcome back,</p>
+                <h1 className="truncate text-2xl font-black text-[#1d2530]">{user?.name || "Admin"}</h1>
               </div>
             </div>
             <div className="hidden flex-1 justify-center md:flex">
-              <label className="flex h-12 w-full max-w-md items-center gap-3 rounded-2xl border border-neutral-200 bg-[#f8f7f3] px-4 text-sm text-neutral-500">
+              <label className="flex h-12 w-full max-w-md items-center gap-3 rounded-2xl border border-[#e4edf7] bg-[#f8fbff] px-4 text-sm text-[#7d8ca2] shadow-sm">
                 <Search size={20} />
                 <input className="w-full bg-transparent outline-none" placeholder="Search..." />
-                <span className="rounded-lg border border-neutral-200 bg-white px-2 py-1 text-xs font-bold text-neutral-500">Ctrl K</span>
+                <span className="rounded-lg border border-[#e4edf7] bg-white px-2 py-1 text-xs font-bold text-[#9aa8b9]">Ctrl K</span>
               </label>
             </div>
             <div className="flex items-center gap-2">
-              <span className="hidden items-center gap-2 rounded-2xl bg-emerald-50 px-4 py-3 text-sm font-black text-emerald-700 sm:flex">
-                <span className="h-2.5 w-2.5 rounded-full bg-emerald-500" />
+              <span className="hidden items-center gap-2 rounded-2xl bg-[#effaff] px-4 py-3 text-sm font-black text-[#1c9ad0] sm:flex">
+                <span className="h-2.5 w-2.5 rounded-full bg-[#55c7f2]" />
                 Opened
               </span>
-              <button className="grid h-12 w-12 place-items-center rounded-full border border-neutral-200 bg-white text-[#15130f]">
+              <button className="grid h-12 w-12 place-items-center rounded-full border border-[#e4edf7] bg-white text-[#1d2530]">
                 <Bell size={19} />
               </button>
-              <Link href="/" className="grid h-12 w-12 place-items-center rounded-full border border-neutral-200 bg-white text-[#15130f]" title="Back to shop">
+              <Link href="/" className="grid h-12 w-12 place-items-center rounded-full border border-[#e4edf7] bg-white text-[#1d2530]" title="Back to shop">
                 <LogOut size={19} />
               </Link>
             </div>
