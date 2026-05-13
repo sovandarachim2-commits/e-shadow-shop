@@ -317,9 +317,9 @@ export function AddressMapPreview({
             })}
           </div>
         </div>
-        <div className="flex items-center justify-between border-t border-[#d8e0ea] bg-white px-4 py-3 text-xs font-bold text-[#697b91]">
-          <span>{loadingCurrentLocation ? "Opening map on your current location..." : "Tap on the map to place or update your delivery pin."}</span>
-          <span className="rounded-full bg-[#eef4fb] px-3 py-1 text-[#4f6277]">{query || "Current location"}</span>
+        <div className="grid gap-2 border-t border-[#d8e0ea] bg-white px-4 py-3 text-xs font-bold text-[#697b91] sm:flex sm:items-center sm:justify-between">
+          <span className="min-w-0 break-words">{loadingCurrentLocation ? "Opening map on your current location..." : "Tap on the map to place or update your delivery pin."}</span>
+          <span className="min-w-0 break-words rounded-full bg-[#eef4fb] px-3 py-1 text-[#4f6277]">{query || "Current location"}</span>
         </div>
       </div>
     );

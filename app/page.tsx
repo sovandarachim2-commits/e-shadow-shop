@@ -179,7 +179,6 @@ export default async function HomePage() {
               <p className="text-xs font-black uppercase tracking-[0.2em] text-[var(--champagne-dark)]">{hero.todayPickLabel}</p>
               <p className="mt-1 text-lg font-black text-[var(--foreground)]">{hero.todayPickTitle}</p>
             </div>
-            <div className="absolute right-8 top-24 h-28 w-28 rounded-full border border-[var(--champagne)] bg-white/30 backdrop-blur" />
           </div>
         </div>
       </section>
@@ -268,34 +267,6 @@ export default async function HomePage() {
         )}
       </section>
 
-      <section className="container-page mt-20">
-        <div className="rounded-[34px] border border-[#d8e2ff] bg-[linear-gradient(135deg,rgba(255,255,255,0.98)_0%,rgba(238,242,255,0.92)_52%,rgba(230,238,255,0.96)_100%)] px-5 py-8 shadow-[0_24px_70px_rgba(33,70,171,0.08)] md:px-8 md:py-10">
-          <div className="text-center">
-            <p className="text-xs font-black uppercase tracking-[0.34em] text-[#4c76ef]">Client Love</p>
-            <h2 className="mt-3 font-serif text-4xl font-bold text-[var(--foreground)] md:text-5xl">Our Happy Customers</h2>
-            <p className="mx-auto mt-4 max-w-2xl text-sm leading-7 text-[var(--muted)] md:text-base">
-              Real feedback from shoppers who love the finish, fast delivery, and premium feel of their beauty picks.
-            </p>
-          </div>
-          <div className="mt-8 grid gap-5 md:grid-cols-3">
-            {["Soft finish and beautiful packaging.", "My skincare order arrived fast.", "The shades feel premium and clean."].map((quote, index) => (
-              <div
-                key={quote}
-                className="rounded-[28px] border border-white/75 bg-white/90 p-6 shadow-[0_18px_44px_rgba(46,87,208,0.10)] transition hover:-translate-y-1 hover:shadow-[0_24px_52px_rgba(46,87,208,0.16)]"
-              >
-                <div className="flex items-center justify-between gap-3">
-                  <p className="text-lg tracking-[0.18em] text-[#ff8b7a]">*****</p>
-                  <span className="rounded-full bg-[#eef2ff] px-3 py-1 text-[11px] font-black uppercase tracking-[0.18em] text-[#2e57d0]">
-                    Verified
-                  </span>
-                </div>
-                <p className="mt-5 text-2xl font-black text-[#1f4698]">{["Sarah M.", "Alex K.", "Mina R."][index]}</p>
-                <p className="mt-3 text-sm leading-7 text-[var(--muted)] md:text-base">{quote}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
     </>
   );
 }

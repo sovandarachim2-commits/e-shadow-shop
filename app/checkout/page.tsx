@@ -302,7 +302,7 @@ export default function CheckoutPage() {
   }, [clear, finalizeOrder, paymentId, paymentReference, paymentStatus, router, toast, token]);
 
   return (
-    <section className="container-page py-12">
+    <section className="container-page py-6 md:py-12">
       {paymentSuccessMessage ? (
         <div className="fixed inset-0 z-[96] flex items-center justify-center bg-[#082b4c]/28 px-4 backdrop-blur-[4px]">
           <div className="w-full max-w-sm rounded-[30px] border border-white/70 bg-white px-6 py-8 text-center shadow-[0_26px_80px_rgba(10,37,112,0.22)]">
@@ -315,19 +315,19 @@ export default function CheckoutPage() {
         </div>
       ) : null}
       {addressModalOpen ? (
-        <div className="fixed inset-0 z-[90] flex items-end justify-center bg-[#082b4c]/40 px-4 py-4 backdrop-blur-[2px] md:items-center">
-          <div className="w-full max-w-2xl overflow-hidden rounded-[32px] bg-white shadow-2xl">
-            <div className="flex items-center justify-between border-b border-[#f3c7b8]/50 px-5 py-4">
-              <div>
+        <div className="fixed inset-0 z-[90] flex items-end justify-center bg-[#082b4c]/40 px-2 py-2 backdrop-blur-[2px] md:items-center md:px-4 md:py-4">
+          <div className="max-h-[calc(100dvh-16px)] w-full max-w-2xl overflow-hidden rounded-[24px] bg-white shadow-2xl md:rounded-[32px]">
+            <div className="flex items-start justify-between gap-3 border-b border-[#f3c7b8]/50 px-4 py-4 md:items-center md:px-5">
+              <div className="min-w-0">
                 <p className="text-xs font-black uppercase tracking-[0.18em] text-[#e9897e]">Delivery Address</p>
-                <h3 className="mt-1 text-2xl font-black text-[#082b4c]">Choose Address Location</h3>
+                <h3 className="mt-1 text-xl font-black leading-tight text-[#082b4c] md:text-2xl">Choose Address Location</h3>
               </div>
-              <button type="button" onClick={() => setAddressModalOpen(false)} className="grid h-10 w-10 place-items-center rounded-full bg-[#fff8f3] text-[#082b4c]">
+              <button type="button" onClick={() => setAddressModalOpen(false)} className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-[#fff8f3] text-[#082b4c]">
                 <X size={18} />
               </button>
             </div>
 
-            <div className="max-h-[70vh] overflow-y-auto px-5 py-5">
+            <div className="max-h-[calc(100dvh-96px)] overflow-y-auto px-4 py-4 md:max-h-[70vh] md:px-5 md:py-5">
               <AddressMapPreview
                 address={selectedSavedLocation?.address || savedLocations[0]?.address}
                 province={selectedSavedLocation?.province || savedLocations[0]?.province}
@@ -337,7 +337,7 @@ export default function CheckoutPage() {
                 className="mb-4"
               />
               <div className="mb-4 flex justify-end">
-                <Link href="/profile/address" className="inline-flex items-center gap-2 rounded-2xl bg-[#15130f] px-4 py-3 text-sm font-black text-white">
+                <Link href="/profile/address" className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-[#15130f] px-4 py-3 text-sm font-black text-white sm:w-auto">
                   <Plus size={16} />
                   Add New Address
                 </Link>
@@ -362,7 +362,7 @@ export default function CheckoutPage() {
                           }));
                           setAddressModalOpen(false);
                         }}
-                        className={`grid gap-3 rounded-[28px] border px-4 py-4 text-left transition ${
+                        className={`grid min-w-0 gap-3 rounded-[22px] border px-4 py-4 text-left transition md:rounded-[28px] ${
                           active ? "border-[#e9897e] bg-[#fff8f3]" : "border-[#f3c7b8]/60 bg-white hover:bg-[#fffdfb]"
                         }`}
                       >
@@ -372,15 +372,15 @@ export default function CheckoutPage() {
                           </span>
                           <div className="min-w-0 flex-1">
                             <div className="flex flex-wrap items-center gap-2">
-                              <p className="text-sm font-black text-[#082b4c]">{location.label}</p>
+                              <p className="min-w-0 break-words text-sm font-black text-[#082b4c]">{location.label}</p>
                               {location.isDefault ? <span className="rounded-full bg-[#fff5c4] px-2.5 py-1 text-[11px] font-black text-[#15130f]">Default</span> : null}
                             </div>
                             {location.recipientName || location.recipientPhone ? (
-                              <p className="mt-2 text-sm font-bold text-[#082b4c]">
+                              <p className="mt-2 break-words text-sm font-bold text-[#082b4c]">
                                 {[location.recipientName, location.recipientPhone].filter(Boolean).join(" , ")}
                               </p>
                             ) : null}
-                            <p className="mt-2 text-sm leading-6 text-[#697b91]">{location.address}</p>
+                            <p className="mt-2 break-words text-sm leading-6 text-[#697b91]">{location.address}</p>
                             {location.province ? <p className="mt-2 text-xs font-bold text-[#e9897e]">{location.province}</p> : null}
                             {typeof location.latitude === "number" && typeof location.longitude === "number" ? (
                               <p className="mt-2 text-[11px] font-bold text-[#082b4c]">GPS pinned location saved</p>
@@ -404,7 +404,7 @@ export default function CheckoutPage() {
       ) : null}
       {paymentSession ? (
         <div className="fixed inset-0 z-[95] overflow-y-auto bg-[linear-gradient(135deg,rgba(33,96,255,0.26)_0%,rgba(26,76,214,0.18)_28%,rgba(246,247,251,0.78)_65%,rgba(246,247,251,0.92)_100%)] px-2 py-2 backdrop-blur-[6px] md:flex md:items-center md:justify-center md:px-4 md:py-4">
-          <div className="mx-auto flex min-h-[calc(100dvh-16px)] w-full max-w-xl flex-col overflow-hidden rounded-[32px] border border-white/70 bg-white shadow-[0_30px_90px_rgba(10,37,112,0.20)] md:min-h-0 md:max-h-[92vh] md:overflow-y-auto md:rounded-[34px]">
+          <div className="mx-auto flex min-h-[calc(100dvh-16px)] w-full max-w-xl flex-col overflow-hidden rounded-[24px] border border-white/70 bg-white shadow-[0_30px_90px_rgba(10,37,112,0.20)] md:min-h-0 md:max-h-[92vh] md:overflow-y-auto md:rounded-[34px]">
               <div className="relative overflow-hidden border-b border-[#e8ebf8] px-4 py-4 md:px-7 md:py-6">
               <div className="absolute inset-x-0 top-0 h-1 bg-[linear-gradient(90deg,#ff8f7a_0%,#ffc071_50%,#4c76ef_100%)]" />
               <div className="absolute right-[-30px] top-[-42px] h-28 w-28 rounded-full bg-[rgba(76,118,239,0.10)] blur-2xl" />
@@ -447,7 +447,7 @@ export default function CheckoutPage() {
                     </div>
                     <div className="bg-white px-5 pb-5 pt-4 md:px-7 md:pb-7 md:pt-6">
                       <p className="mt-1 text-left text-[12px] font-black uppercase tracking-[0.24em] text-[#7b8aa4]">Merchant</p>
-                      <p className="mt-3 text-left text-[28px] font-black uppercase tracking-[0.02em] leading-none text-[#1a1a1a] md:text-[34px]">
+                      <p className="mt-3 break-words text-left text-[22px] font-black uppercase leading-none text-[#1a1a1a] md:text-[34px]">
                         {paymentSession.merchantName || "Bakong Merchant"}
                       </p>
                       <div className="mt-4 border-t border-dashed border-[#d8dbe5] md:mt-7" />
@@ -472,12 +472,12 @@ export default function CheckoutPage() {
                       </div>
                     </div>
                   </div>
-                  <div className="flex flex-wrap justify-center gap-2">
-                    <div className="inline-flex rounded-full bg-[#2e4fc3] px-4 py-2 text-sm font-black text-white shadow-[0_16px_28px_rgba(46,79,195,0.22)] md:px-5 md:py-2.5">
+                  <div className="grid w-full gap-2 sm:flex sm:flex-wrap sm:justify-center">
+                    <div className="inline-flex justify-center rounded-full bg-[#2e4fc3] px-4 py-2 text-sm font-black text-white shadow-[0_16px_28px_rgba(46,79,195,0.22)] md:px-5 md:py-2.5">
                       Time left {countdownLabel}
                     </div>
                     <div
-                      className={`inline-flex items-center rounded-full px-4 py-2 text-sm font-black ${
+                      className={`inline-flex items-center justify-center rounded-full px-4 py-2 text-center text-sm font-black ${
                         paymentSession.status === "PAID"
                           ? "bg-emerald-100 text-emerald-700"
                           : paymentSession.status === "ERROR"
@@ -493,9 +493,9 @@ export default function CheckoutPage() {
 
               <div className="rounded-[24px] border border-[#e8ebf8] bg-[linear-gradient(135deg,#2e4fc3_0%,#2160ff_100%)] px-5 py-4 text-white shadow-[0_24px_42px_rgba(33,96,255,0.24)] md:rounded-[28px] md:px-6 md:py-6">
                 <p className="text-[11px] font-black uppercase tracking-[0.28em] text-white/75">Total Payment</p>
-                <div className="mt-2.5 flex items-end justify-between gap-4 md:mt-3">
+                <div className="mt-2.5 flex flex-wrap items-end justify-between gap-3 md:mt-3">
                   <span className="text-base font-bold text-white/80 md:text-lg">Amount</span>
-                  <span className="text-[46px] font-black tracking-[-0.05em] leading-none md:text-[64px]">{money(paymentSession.total)}</span>
+                  <span className="break-all text-[38px] font-black leading-none md:text-[64px]">{money(paymentSession.total)}</span>
                 </div>
               </div>
             </div>
@@ -503,7 +503,7 @@ export default function CheckoutPage() {
         </div>
       ) : null}
 
-      <h1 className="flex items-center justify-center gap-3 font-serif text-5xl font-bold text-[#082b4c]">
+      <h1 className="flex items-center justify-center gap-3 font-serif text-4xl font-bold text-[#082b4c] md:text-5xl">
         <CircleDollarSign className="text-[#082b4c]" size={34} />
         Checkout
       </h1>
@@ -590,13 +590,13 @@ export default function CheckoutPage() {
             </div>
           </section>
 
-          <section className="rounded-2xl border-2 border-dashed border-[#f3c7b8] bg-white p-6 shadow-sm">
+          <section className="rounded-2xl border-2 border-dashed border-[#f3c7b8] bg-white p-4 shadow-sm md:p-6">
             <h2 className="font-serif text-3xl font-bold text-[#082b4c]">Summary</h2>
             <div className="mt-5 grid gap-3 text-sm">
               {displayItems.map((item) => (
                 <div key={item.id} className="flex justify-between gap-4">
-                  <span>{item.name} x {item.quantity}</span>
-                  <span>{money(Number(item.price) * item.quantity)}</span>
+                  <span className="min-w-0 break-words">{item.name} x {item.quantity}</span>
+                  <span className="shrink-0">{money(Number(item.price) * item.quantity)}</span>
                 </div>
               ))}
             </div>
@@ -619,17 +619,17 @@ export default function CheckoutPage() {
           <section>
             <h2 className="font-serif text-3xl font-bold text-[#082b4c]">Bakong Payment</h2>
             <div className="mt-5 rounded-[28px] border border-[#f3c7b8]/70 bg-white p-5 shadow-sm">
-              <div className="flex items-center justify-between gap-4">
-                <span className="flex items-center gap-4">
-                  <span className="grid h-10 w-14 place-items-center rounded-lg bg-[#d32027] text-xs font-black text-white">
+              <div className="flex items-center justify-between gap-3">
+                <span className="flex min-w-0 items-center gap-3 md:gap-4">
+                  <span className="grid h-10 w-14 shrink-0 place-items-center rounded-lg bg-[#d32027] text-xs font-black text-white">
                     {paymentMethodSetting.badge}
                   </span>
-                  <span>
-                    <span className="block text-lg font-black text-[#082b4c]">{paymentMethodSetting.name}</span>
+                  <span className="min-w-0">
+                    <span className="block break-words text-base font-black text-[#082b4c] md:text-lg">{paymentMethodSetting.name}</span>
                     <span className="text-sm text-slate-500">{paymentMethodSetting.description}</span>
                   </span>
                 </span>
-                <span className="grid h-7 w-7 place-items-center rounded-full bg-[#082b4c] text-white">
+                <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-[#082b4c] text-white">
                   <Check size={15} />
                 </span>
               </div>

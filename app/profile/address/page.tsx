@@ -237,23 +237,23 @@ export default function AddressLocationPage() {
   }
 
   return (
-    <section className="beauty-surface min-h-[calc(100vh-80px)] py-12">
+    <section className="beauty-surface min-h-[calc(100vh-80px)] py-6 md:py-12">
       <div className="container-page grid gap-6">
-        <div className="flex items-center justify-between rounded-[30px] bg-white p-5 shadow-sm md:p-6">
-          <div>
-            <h1 className="text-3xl font-black text-[#082b4c] md:text-4xl">Address History</h1>
+        <div className="grid gap-4 rounded-[24px] bg-white p-4 shadow-sm sm:flex sm:items-center sm:justify-between md:rounded-[30px] md:p-6">
+          <div className="min-w-0">
+            <h1 className="text-2xl font-black leading-tight text-[#082b4c] md:text-4xl">Address History</h1>
             <p className="mt-2 text-sm text-[#697b91]">{sortedLocations.length} saved {sortedLocations.length === 1 ? "address" : "addresses"}</p>
           </div>
-          <Button type="button" onClick={startCreate} className="h-12 rounded-2xl px-5">
+          <Button type="button" onClick={startCreate} className="h-12 w-full rounded-2xl px-4 sm:w-auto sm:px-5">
             <Plus size={16} />
             Add New Address
           </Button>
         </div>
 
         <div className="grid gap-5">
-          <div className="flex items-center justify-between rounded-[30px] bg-white p-5 shadow-sm">
-            <div>
-              <h2 className="text-2xl font-black text-[#082b4c]">Address History</h2>
+          <div className="rounded-[24px] bg-white p-4 shadow-sm md:rounded-[30px] md:p-5">
+            <div className="min-w-0">
+              <h2 className="text-xl font-black leading-tight text-[#082b4c] md:text-2xl">Address History</h2>
               <p className="mt-1 text-sm text-[#697b91]">Newest saved or updated address appears first.</p>
             </div>
           </div>
@@ -261,41 +261,41 @@ export default function AddressLocationPage() {
           {locations.length ? (
             <div className="grid gap-4">
               {sortedLocations.map((location) => (
-                <article key={location.id} className="overflow-hidden rounded-[30px] bg-white shadow-sm">
-                  <div className="grid gap-5 p-5 lg:grid-cols-[300px_minmax(0,1fr)] lg:p-6">
-                    <div>
+                <article key={location.id} className="overflow-hidden rounded-[24px] bg-white shadow-sm md:rounded-[30px]">
+                  <div className="grid gap-4 p-4 lg:grid-cols-[300px_minmax(0,1fr)] lg:gap-5 lg:p-6">
+                    <div className="min-w-0">
                       <AddressMapPreview address={location.address} province={location.province} latitude={location.latitude} longitude={location.longitude} title={`${location.label} map preview`} className="h-full" />
                       {typeof location.latitude === "number" && typeof location.longitude === "number" ? (
-                        <p className="mt-3 text-xs font-bold text-[#e9897e]">GPS pin: {location.latitude.toFixed(6)}, {location.longitude.toFixed(6)}</p>
+                        <p className="mt-3 break-words text-xs font-bold text-[#e9897e]">GPS pin: {location.latitude.toFixed(6)}, {location.longitude.toFixed(6)}</p>
                       ) : null}
                     </div>
 
-                    <div className="flex h-full flex-col justify-between gap-5">
-                      <div>
+                    <div className="flex h-full min-w-0 flex-col justify-between gap-5">
+                      <div className="min-w-0">
                         <div className="flex flex-wrap items-center gap-3">
-                          <h3 className="text-2xl font-black text-[#082b4c]">{location.label}</h3>
+                          <h3 className="min-w-0 break-words text-xl font-black leading-tight text-[#082b4c] md:text-2xl">{location.label}</h3>
                           {location.isDefault ? <span className="rounded-full bg-[#fff5c4] px-3 py-1 text-xs font-black text-[#15130f]">Default</span> : null}
                           <span className="rounded-full bg-[#f6f7fb] px-3 py-1 text-xs font-black text-[#697b91]">
                             Updated {formatDate(location.updatedAt) || formatDate(location.createdAt)}
                           </span>
                         </div>
                         {location.recipientName || location.recipientPhone ? (
-                          <p className="mt-3 text-sm font-bold text-[#082b4c]">
+                          <p className="mt-3 break-words text-sm font-bold text-[#082b4c]">
                             {[location.recipientName, location.recipientPhone].filter(Boolean).join(" , ")}
                           </p>
                         ) : null}
-                        <p className="mt-3 text-sm leading-7 text-[#697b91]">{location.address}</p>
+                        <p className="mt-3 break-words text-sm leading-7 text-[#697b91]">{location.address}</p>
                         {location.province ? <p className="mt-3 text-sm font-black text-[#e9897e]">{location.province}</p> : null}
                         <p className="mt-3 text-xs font-bold uppercase tracking-[0.14em] text-[#9aa7b8]">
                           Created {formatDate(location.createdAt)}
                         </p>
                       </div>
 
-                      <div className="flex flex-wrap gap-3">
+                      <div className="grid gap-3 sm:flex sm:flex-wrap">
                         <button
                           type="button"
                           onClick={() => startEdit(location)}
-                          className="inline-flex h-11 items-center gap-2 rounded-2xl bg-[#fff8f3] px-4 text-sm font-black text-[#082b4c] transition hover:bg-[#f8ded8]"
+                          className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-2xl bg-[#fff8f3] px-4 text-sm font-black text-[#082b4c] transition hover:bg-[#f8ded8] sm:w-auto"
                         >
                           <Pencil size={16} />
                           Edit address
@@ -303,7 +303,7 @@ export default function AddressLocationPage() {
                         <button
                           type="button"
                           onClick={() => remove(location.id)}
-                          className="inline-flex h-11 items-center gap-2 rounded-2xl bg-red-50 px-4 text-sm font-black text-red-600 transition hover:bg-red-100"
+                          className="inline-flex h-11 w-full items-center justify-center gap-2 rounded-2xl bg-red-50 px-4 text-sm font-black text-red-600 transition hover:bg-red-100 sm:w-auto"
                         >
                           <Trash2 size={16} />
                           Delete
@@ -315,13 +315,13 @@ export default function AddressLocationPage() {
               ))}
             </div>
           ) : (
-            <div className="rounded-[30px] bg-white p-10 text-center shadow-sm">
+            <div className="rounded-[24px] bg-white p-6 text-center shadow-sm md:rounded-[30px] md:p-10">
               <div className="mx-auto grid h-16 w-16 place-items-center rounded-full bg-[#fff8f3] text-[#e9897e]">
                 <MapPinned size={34} />
               </div>
               <p className="mt-5 text-2xl font-black text-[#082b4c]">No address history yet</p>
               <p className="mt-3 text-sm leading-6 text-[#697b91]">Add your first delivery address to start your saved location history and make checkout faster.</p>
-              <Button type="button" onClick={startCreate} className="mt-6 h-12 rounded-2xl px-5">
+              <Button type="button" onClick={startCreate} className="mt-6 h-12 w-full rounded-2xl px-5 sm:w-auto">
                 <Plus size={16} />
                 Add First Address
               </Button>
@@ -331,15 +331,15 @@ export default function AddressLocationPage() {
       </div>
 
       {formOpen ? (
-        <div className="fixed inset-0 z-[90] bg-[#eef1f6] md:flex md:items-center md:justify-center md:bg-[#082b4c]/40 md:px-4 md:py-4 md:backdrop-blur-[2px]">
+        <div className="fixed inset-0 z-[90] overflow-hidden bg-[#eef1f6] md:flex md:items-center md:justify-center md:bg-[#082b4c]/40 md:px-4 md:py-4 md:backdrop-blur-[2px]">
           <div className="flex h-full w-full flex-col overflow-hidden bg-[#f5f7fb] md:h-auto md:max-h-[90vh] md:max-w-2xl md:rounded-[36px] md:bg-white md:shadow-2xl">
-            <div className="flex items-center justify-between bg-[#f5f7fb] px-5 pb-4 pt-4 md:border-b md:border-[#eef1f5] md:bg-white md:px-6 md:py-5">
-              <button type="button" onClick={resetForm} className="grid h-11 w-11 place-items-center rounded-full text-2xl font-light text-[#082b4c] md:hidden">
+            <div className="flex items-start justify-between gap-2 bg-[#f5f7fb] px-3 pb-3 pt-3 md:items-center md:border-b md:border-[#eef1f5] md:bg-white md:px-6 md:py-5">
+              <button type="button" onClick={resetForm} className="grid h-11 w-11 shrink-0 place-items-center rounded-full text-2xl font-light text-[#082b4c] md:hidden">
                 {"<"}
               </button>
-              <div className="flex-1 text-center md:text-left">
-                <h2 className="text-2xl font-black text-[#082b4c] md:text-3xl">{editingId ? "Update saved location" : "Add New Address"}</h2>
-                <p className="mt-2 text-sm leading-6 text-[#697b91] md:block">Place the pin on the map first, then fill the address details for faster checkout.</p>
+              <div className="min-w-0 flex-1 text-center md:text-left">
+                <h2 className="text-xl font-black leading-tight text-[#082b4c] md:text-3xl">{editingId ? "Update saved location" : "Add New Address"}</h2>
+                <p className="mt-1 text-xs leading-5 text-[#697b91] md:mt-2 md:text-sm md:leading-6">Place the pin on the map first, then fill the address details for faster checkout.</p>
               </div>
               <button type="button" onClick={resetForm} className="hidden rounded-2xl border border-neutral-200 bg-white px-4 py-2 text-sm font-black text-[#082b4c] md:inline-flex">
                 Close
@@ -372,7 +372,7 @@ export default function AddressLocationPage() {
                 type="button"
                 onClick={useCurrentLocation}
                 disabled={locating}
-                className="mx-5 inline-flex w-auto items-center justify-center gap-2 rounded-[24px] border border-[#f3c7b8]/70 bg-white px-4 py-3 text-sm font-black text-[#ff5a1f] transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-70 md:mx-0"
+                className="mx-3 inline-flex w-auto items-center justify-center gap-2 rounded-[20px] border border-[#f3c7b8]/70 bg-white px-4 py-3 text-sm font-black text-[#ff5a1f] transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-70 md:mx-0 md:rounded-[24px]"
               >
                 {locating ? <Loader2 size={16} className="animate-spin" /> : <Crosshair size={16} />}
                 {locating ? "Detecting location..." : "Use Current Location"}

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { LockKeyhole, Mail, ShoppingBag } from "lucide-react";
 import { GoogleAuthButton } from "@/components/google-auth-button";
+import { TelegramAuthButton } from "@/components/telegram-auth-button";
 import { Button } from "@/components/ui/button";
 import { useAuthStore } from "@/lib/auth-store";
 import { UserSession } from "@/lib/types";
@@ -97,7 +98,10 @@ export default function LoginPage() {
 
           <div className="mt-12">
             <p className="mb-4 text-center text-sm font-bold text-[#2e57d0]">Or continue with</p>
-            <GoogleAuthButton mode="signin" variant="compact" />
+            <div className="grid gap-3">
+              <TelegramAuthButton mode="signin" variant="compact" defaultRedirect="/profile" />
+              <GoogleAuthButton mode="signin" variant="compact" />
+            </div>
           </div>
 
           <div className="mt-10 text-center">

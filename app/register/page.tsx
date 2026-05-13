@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import { LockKeyhole, MousePointerClick, Phone, Send, UserRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { GoogleAuthButton } from "@/components/google-auth-button";
+import { TelegramAuthButton } from "@/components/telegram-auth-button";
 import { useAuthStore } from "@/lib/auth-store";
 import { DEFAULT_BRAND_NAME, DEFAULT_BRAND_TAGLINE } from "@/lib/site-brand";
 import { useToastStore } from "@/lib/toast-store";
@@ -236,7 +237,10 @@ export default function RegisterPage() {
               <MousePointerClick size={18} className="text-[#e9897e]" />
               <span>Or continue with</span>
             </p>
-            <GoogleAuthButton mode="signup" variant="compact" />
+            <div className="grid gap-3">
+              <TelegramAuthButton mode="signup" variant="compact" defaultRedirect="/profile" />
+              <GoogleAuthButton mode="signup" variant="compact" />
+            </div>
           </div>
 
           <p className="mt-10 border-t border-[#e8ebf8] pt-8 text-center text-base text-neutral-600">
