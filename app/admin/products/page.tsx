@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Boxes, CheckCircle2, Clock3, DollarSign, History, ImageIcon, ImagePlus, PackagePlus, Pencil, Plus, RotateCcw, Search, Sparkles, Tag, Trash2, UploadCloud, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input, Textarea } from "@/components/ui/input";
@@ -52,12 +52,23 @@ export default function AdminProductsPage() {
   const [historyItems, setHistoryItems] = useState<ProductHistory[]>([]);
   const [previewUrl, setPreviewUrl] = useState("");
   const [uploading, setUploading] = useState(false);
-  const visibleProducts = products.filter((product) =>
-    `${product.name} ${product.brand || ""} ${product.category} ${product.description}`.toLowerCase().includes(query.toLowerCase())
+  const visibleProducts = useMemo(() =>
+    products.filter((product) =>
+      `${product.name} ${product.brand || ""} ${product.category} ${product.description}`.toLowerCase().includes(query.toLowerCase())
+    ),
+    [products, query]
   );
+  const productStats = useMemo(() => ({
+    total: products.length,
+    newArrivals: products.filter((product) => product.isNewArrival).length,
+    onSale: products.filter((product) => product.isOnSale).length
+  }), [products]);
   const productValue = Number(form.salePrice || form.price || 0);
   const currentStock = Number(form.stock || 0);
-  const styleOptions = Array.from(new Set(["Essentials", "Skincare", "Makeup", "Fragrance", "Haircare", "Body Care", ...products.map((product) => product.style || "").filter(Boolean)]));
+  const styleOptions = useMemo(
+    () => Array.from(new Set(["Essentials", "Skincare", "Makeup", "Fragrance", "Haircare", "Body Care", ...products.map((product) => product.style || "").filter(Boolean)])),
+    [products]
+  );
 
   function load() {
     fetch("/api/products").then((r) => r.json()).then((data) => setProducts(data.products || []));
@@ -132,7 +143,7 @@ export default function AdminProductsPage() {
     setPreviewUrl("");
   }
 
-  function openEdit(product: Product) {
+  const openEdit = useCallback((product: Product) => {
     setEditing(product.id);
     setPreviewUrl("");
     setForm({
@@ -151,7 +162,7 @@ export default function AdminProductsPage() {
       promotionLabel: product.promotionLabel || ""
     });
     setFormOpen(true);
-  }
+  }, []);
 
   async function saveProduct() {
     if (!form.imageUrl) return toast("Please upload a product image", "error");
@@ -187,6 +198,88 @@ export default function AdminProductsPage() {
     if (response.ok && product) recordHistory("Deleted", product.name);
     load();
   }
+
+  const productListSection = useMemo(() => (
+    <section className="admin-card overflow-hidden rounded-[26px]">
+      <div className="flex items-center justify-between border-b border-neutral-100 px-5 py-4">
+        <div>
+          <h2 className="text-xl font-black text-[#15130f]">Product List</h2>
+          <p className="mt-1 text-sm text-neutral-500">{visibleProducts.length} products showing</p>
+        </div>
+      </div>
+
+      <div className="overflow-x-auto">
+        <table className="w-full min-w-[980px] border-collapse text-left">
+          <thead className="bg-[#fbfaf7] text-xs font-black uppercase tracking-[0.12em] text-neutral-400">
+            <tr>
+              <th className="px-5 py-4">No</th>
+              <th className="px-5 py-4">Image</th>
+              <th className="px-5 py-4">Product</th>
+              <th className="px-5 py-4">Brand</th>
+              <th className="px-5 py-4">Category</th>
+              <th className="px-5 py-4">Price</th>
+              <th className="px-5 py-4">Delivery Fee</th>
+              <th className="px-5 py-4">Stock</th>
+              <th className="px-5 py-4">Status</th>
+              <th className="px-5 py-4 text-right">Action</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-neutral-100">
+            {visibleProducts.map((product, index) => (
+              <tr key={product.id} className="align-middle transition hover:bg-[#fffdf8]">
+                <td className="px-5 py-4 text-sm font-black text-[#15130f]">{index + 1}</td>
+                <td className="px-5 py-4">
+                  <button
+                    type="button"
+                    onClick={() => setImagePreview({ src: product.imageUrl, name: product.name })}
+                    className="relative h-16 w-16 overflow-hidden rounded-2xl bg-neutral-100 transition hover:ring-4 hover:ring-[#ffdc1f]/45"
+                    title="View image"
+                  >
+                    <Image src={product.imageUrl} alt={product.name} fill sizes="64px" className="object-cover" />
+                  </button>
+                </td>
+                <td className="max-w-[260px] px-5 py-4">
+                  <p className="truncate font-black text-[#15130f]">{product.name}</p>
+                  <p className="mt-1 truncate text-sm text-neutral-500">{product.style || "Essentials"}</p>
+                </td>
+                <td className="px-5 py-4 text-sm font-bold text-[#15130f]">{product.brand || "-"}</td>
+                <td className="px-5 py-4 text-sm text-neutral-500">{product.category}</td>
+                <td className="px-5 py-4">
+                  <p className="font-black text-[#15130f]">{money(product.salePrice || product.price)}</p>
+                  {product.isOnSale && product.salePrice && <p className="text-xs text-neutral-400 line-through">{money(product.price)}</p>}
+                </td>
+                <td className="px-5 py-4 text-sm font-bold text-[#15130f]">{money(product.deliveryFee || 0)}</td>
+                <td className="px-5 py-4">
+                  <span className={`rounded-full px-3 py-1 text-xs font-black ${product.stock > 0 ? "bg-emerald-50 text-emerald-700" : "bg-red-50 text-red-600"}`}>
+                    {product.stock}
+                  </span>
+                </td>
+                <td className="px-5 py-4">
+                  <div className="flex flex-wrap gap-2">
+                    {product.isOnSale && <span className="rounded-full bg-[#ffe7df] px-3 py-1 text-xs font-black text-[#de745c]">{product.promotionLabel || "On Sale"}</span>}
+                    {product.isNewArrival && <span className="rounded-full bg-[#fff5c4] px-3 py-1 text-xs font-black text-[#15130f]">New</span>}
+                    {!product.isOnSale && !product.isNewArrival && <span className="rounded-full bg-neutral-100 px-3 py-1 text-xs font-black text-neutral-500">Regular</span>}
+                  </div>
+                </td>
+                <td className="px-5 py-4">
+                  <div className="flex justify-end gap-2">
+                    <button onClick={() => openEdit(product)} className="rounded-xl bg-[#fbfaf7] p-2 text-[#15130f] hover:bg-[#ffdc1f]" title="Edit product">
+                      <Pencil size={18} />
+                    </button>
+                    <button onClick={() => setConfirmDelete(product)} className="rounded-xl bg-red-50 p-2 text-red-600 hover:bg-red-100" title="Delete product">
+                      <Trash2 size={18} />
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      {!visibleProducts.length && <p className="px-5 py-6 text-sm text-neutral-500">No products found.</p>}
+    </section>
+  ), [openEdit, visibleProducts]);
 
   return (
     <div className="grid gap-5">
@@ -226,17 +319,17 @@ export default function AdminProductsPage() {
         <div className="admin-card rounded-[22px] p-5">
           <Boxes className="text-[#e0a900]" size={23} />
           <p className="mt-4 text-sm font-black text-neutral-400">Total products</p>
-          <p className="mt-1 text-3xl font-black text-[#15130f]">{products.length}</p>
+          <p className="mt-1 text-3xl font-black text-[#15130f]">{productStats.total}</p>
         </div>
         <div className="admin-card rounded-[22px] p-5">
           <Sparkles className="text-[#e0a900]" size={23} />
           <p className="mt-4 text-sm font-black text-neutral-400">New arrivals</p>
-          <p className="mt-1 text-3xl font-black text-[#15130f]">{products.filter((product) => product.isNewArrival).length}</p>
+          <p className="mt-1 text-3xl font-black text-[#15130f]">{productStats.newArrivals}</p>
         </div>
         <div className="admin-card rounded-[22px] p-5">
           <ImagePlus className="text-[#e0a900]" size={23} />
           <p className="mt-4 text-sm font-black text-neutral-400">On sale</p>
-          <p className="mt-1 text-3xl font-black text-[#15130f]">{products.filter((product) => product.isOnSale).length}</p>
+          <p className="mt-1 text-3xl font-black text-[#15130f]">{productStats.onSale}</p>
         </div>
       </div>
 
@@ -495,85 +588,7 @@ export default function AdminProductsPage() {
         </div>
       )}
 
-      <section className="admin-card overflow-hidden rounded-[26px]">
-        <div className="flex items-center justify-between border-b border-neutral-100 px-5 py-4">
-          <div>
-            <h2 className="text-xl font-black text-[#15130f]">Product List</h2>
-            <p className="mt-1 text-sm text-neutral-500">{visibleProducts.length} products showing</p>
-          </div>
-        </div>
-
-        <div className="overflow-x-auto">
-          <table className="w-full min-w-[980px] border-collapse text-left">
-            <thead className="bg-[#fbfaf7] text-xs font-black uppercase tracking-[0.12em] text-neutral-400">
-              <tr>
-                <th className="px-5 py-4">No</th>
-                <th className="px-5 py-4">Image</th>
-                <th className="px-5 py-4">Product</th>
-                <th className="px-5 py-4">Brand</th>
-                <th className="px-5 py-4">Category</th>
-                <th className="px-5 py-4">Price</th>
-                <th className="px-5 py-4">Delivery Fee</th>
-                <th className="px-5 py-4">Stock</th>
-                <th className="px-5 py-4">Status</th>
-                <th className="px-5 py-4 text-right">Action</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-neutral-100">
-              {visibleProducts.map((product, index) => (
-                <tr key={product.id} className="align-middle transition hover:bg-[#fffdf8]">
-                  <td className="px-5 py-4 text-sm font-black text-[#15130f]">{index + 1}</td>
-                  <td className="px-5 py-4">
-                    <button
-                      type="button"
-                      onClick={() => setImagePreview({ src: product.imageUrl, name: product.name })}
-                      className="relative h-16 w-16 overflow-hidden rounded-2xl bg-neutral-100 transition hover:ring-4 hover:ring-[#ffdc1f]/45"
-                      title="View image"
-                    >
-                      <Image src={product.imageUrl} alt={product.name} fill sizes="64px" className="object-cover" />
-                    </button>
-                  </td>
-                  <td className="max-w-[260px] px-5 py-4">
-                    <p className="truncate font-black text-[#15130f]">{product.name}</p>
-                    <p className="mt-1 truncate text-sm text-neutral-500">{product.style || "Essentials"}</p>
-                  </td>
-                  <td className="px-5 py-4 text-sm font-bold text-[#15130f]">{product.brand || "-"}</td>
-                  <td className="px-5 py-4 text-sm text-neutral-500">{product.category}</td>
-                  <td className="px-5 py-4">
-                    <p className="font-black text-[#15130f]">{money(product.salePrice || product.price)}</p>
-                    {product.isOnSale && product.salePrice && <p className="text-xs text-neutral-400 line-through">{money(product.price)}</p>}
-                  </td>
-                  <td className="px-5 py-4 text-sm font-bold text-[#15130f]">{money(product.deliveryFee || 0)}</td>
-                  <td className="px-5 py-4">
-                    <span className={`rounded-full px-3 py-1 text-xs font-black ${product.stock > 0 ? "bg-emerald-50 text-emerald-700" : "bg-red-50 text-red-600"}`}>
-                      {product.stock}
-                    </span>
-                  </td>
-                  <td className="px-5 py-4">
-                    <div className="flex flex-wrap gap-2">
-                      {product.isOnSale && <span className="rounded-full bg-[#ffe7df] px-3 py-1 text-xs font-black text-[#de745c]">{product.promotionLabel || "On Sale"}</span>}
-                      {product.isNewArrival && <span className="rounded-full bg-[#fff5c4] px-3 py-1 text-xs font-black text-[#15130f]">New</span>}
-                      {!product.isOnSale && !product.isNewArrival && <span className="rounded-full bg-neutral-100 px-3 py-1 text-xs font-black text-neutral-500">Regular</span>}
-                    </div>
-                  </td>
-                  <td className="px-5 py-4">
-                    <div className="flex justify-end gap-2">
-                      <button onClick={() => openEdit(product)} className="rounded-xl bg-[#fbfaf7] p-2 text-[#15130f] hover:bg-[#ffdc1f]" title="Edit product">
-                        <Pencil size={18} />
-                      </button>
-                      <button onClick={() => setConfirmDelete(product)} className="rounded-xl bg-red-50 p-2 text-red-600 hover:bg-red-100" title="Delete product">
-                        <Trash2 size={18} />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        {!visibleProducts.length && <p className="px-5 py-6 text-sm text-neutral-500">No products found.</p>}
-      </section>
+      {productListSection}
     </div>
   );
 }

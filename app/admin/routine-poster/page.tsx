@@ -1,7 +1,7 @@
 "use client";
 
-import { Pencil, Plus, Save, Trash2, UploadCloud, X } from "lucide-react";
-import { useEffect, useState } from "react";
+import { ImageIcon, Link2, Loader2, Pencil, Plus, Save, Trash2, UploadCloud, X } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuthStore } from "@/lib/auth-store";
@@ -32,6 +32,12 @@ export default function AdminRoutinePosterPage() {
   const [draftPoster, setDraftPoster] = useState<RoutinePoster | null>(null);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [localPreviewUrl, setLocalPreviewUrl] = useState("");
+  const previewImageUrl = localPreviewUrl || draftPoster?.imageUrl || "";
+  const selectedBrand = useMemo(
+    () => brands.find((brand) => brand.name === draftPoster?.brand),
+    [brands, draftPoster?.brand]
+  );
 
   useEffect(() => {
     fetch("/api/brands")
@@ -51,6 +57,7 @@ export default function AdminRoutinePosterPage() {
 
   function openAddModal() {
     setEditingIndex(null);
+    setLocalPreviewUrl("");
     setDraftPoster({
       id: makeId(),
       title: "Routine Poster",
@@ -63,6 +70,7 @@ export default function AdminRoutinePosterPage() {
     const poster = hero.routinePosters[index];
     if (!poster) return;
     setEditingIndex(index);
+    setLocalPreviewUrl("");
     setDraftPoster({ ...poster });
   }
 
@@ -70,6 +78,8 @@ export default function AdminRoutinePosterPage() {
     setEditingIndex(null);
     setDraftPoster(null);
     setUploading(false);
+    if (localPreviewUrl) URL.revokeObjectURL(localPreviewUrl);
+    setLocalPreviewUrl("");
   }
 
   async function saveRoutinePosters(routinePosters: RoutinePoster[], successMessage: string) {
@@ -103,6 +113,8 @@ export default function AdminRoutinePosterPage() {
       return;
     }
 
+    if (localPreviewUrl) URL.revokeObjectURL(localPreviewUrl);
+    setLocalPreviewUrl(URL.createObjectURL(prepared.file));
     setUploading(true);
     try {
       const body = new FormData();
@@ -116,6 +128,8 @@ export default function AdminRoutinePosterPage() {
 
       if (response.ok && data.url) {
         updateDraft({ imageUrl: data.url });
+        if (localPreviewUrl) URL.revokeObjectURL(localPreviewUrl);
+        setLocalPreviewUrl("");
         toast(prepared.compressed ? "Poster compressed and uploaded" : "Poster uploaded");
       } else {
         toast(data.message || "Upload failed", "error");
@@ -130,6 +144,7 @@ export default function AdminRoutinePosterPage() {
   async function submit(event: React.FormEvent) {
     event.preventDefault();
     if (!draftPoster) return;
+    if (uploading) return toast("Please wait for the poster upload to finish", "error");
     if (!draftPoster.imageUrl.trim()) return toast("Please add a poster image", "error");
     if (!draftPoster.brand.trim()) return toast("Please select a brand", "error");
 
@@ -231,7 +246,7 @@ export default function AdminRoutinePosterPage() {
           <form onSubmit={submit} className="admin-card mx-auto grid w-full max-w-5xl gap-5 overflow-hidden rounded-[30px]">
             <div className="flex items-start justify-between gap-4 border-b border-neutral-100 px-5 py-4">
               <div>
-                <p className="text-sm font-black uppercase tracking-[0.12em] text-[#e0a900]">
+                <p className="text-sm font-black uppercase tracking-[0.12em] text-[#45bff0]">
                   {editingIndex === null ? "Add Routine Poster" : `Edit Poster ${editingIndex + 1}`}
                 </p>
                 <h2 className="text-2xl font-black text-[#15130f]">{draftPoster.title || "Routine Poster"}</h2>
@@ -243,6 +258,10 @@ export default function AdminRoutinePosterPage() {
 
             <div className="grid gap-5 p-5 lg:grid-cols-[1fr_420px]">
               <div className="grid gap-4">
+                <div className="rounded-[24px] border border-[#d9eaf7] bg-[#f8fcff] p-4">
+                  <p className="text-sm font-black text-[#15130f]">Fast poster setup</p>
+                  <p className="mt-1 text-sm leading-6 text-neutral-500">Upload a clean image first, choose the brand, then save. Wide images around 4:3 or 16:9 work best in the home carousel.</p>
+                </div>
                 <label className="grid gap-2 text-sm font-black text-[#15130f]">
                   Poster title
                   <Input value={draftPoster.title} onChange={(event) => updateDraft({ title: event.target.value })} />
@@ -264,10 +283,13 @@ export default function AdminRoutinePosterPage() {
                 </label>
                 <label className="grid gap-2 text-sm font-black text-[#15130f]">
                   Poster image URL
-                  <Input value={draftPoster.imageUrl} onChange={(event) => updateDraft({ imageUrl: event.target.value })} />
+                  <div className="relative">
+                    <Link2 className="absolute left-4 top-1/2 -translate-y-1/2 text-[#8ea1b7]" size={18} />
+                    <Input value={draftPoster.imageUrl} onChange={(event) => updateDraft({ imageUrl: event.target.value })} className="pl-11" placeholder="Upload image or paste https://..." />
+                  </div>
                 </label>
-                <label className="flex min-h-12 cursor-pointer items-center justify-center gap-2 rounded-2xl bg-[#15130f] px-4 text-sm font-black text-white transition hover:bg-[#2b261d]">
-                  <UploadCloud size={18} />
+                <label className="flex min-h-12 cursor-pointer items-center justify-center gap-2 rounded-2xl bg-[#1d2530] px-4 text-sm font-black text-white transition hover:bg-[#263a4d]">
+                  {uploading ? <Loader2 size={18} className="animate-spin" /> : <UploadCloud size={18} />}
                   {uploading ? "Uploading poster..." : "Upload poster"}
                   <input
                     type="file"
@@ -281,16 +303,47 @@ export default function AdminRoutinePosterPage() {
                     }}
                   />
                 </label>
+                <p className="text-xs font-bold text-neutral-500">
+                  Uploading will compress large images automatically. You can still paste an image URL manually.
+                </p>
               </div>
 
-              <div>
-                {draftPoster.imageUrl ? (
-                  <div
-                    className="aspect-[4/3] w-full rounded-2xl bg-neutral-100 bg-cover bg-center"
-                    style={{ backgroundImage: `url(${draftPoster.imageUrl})` }}
-                  />
+              <div className="grid gap-4">
+                {previewImageUrl ? (
+                  <div className="overflow-hidden rounded-[28px] border border-[#d9eaf7] bg-[#f8fcff] shadow-sm">
+                    <div
+                      className="aspect-[4/3] w-full bg-neutral-100 bg-cover bg-center"
+                      style={{ backgroundImage: `url(${previewImageUrl})` }}
+                    />
+                    <div className="flex items-center justify-between gap-3 px-4 py-3">
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-black text-[#15130f]">{draftPoster.title || "Routine Poster"}</p>
+                        <p className="truncate text-xs font-bold text-neutral-500">{selectedBrand?.name || draftPoster.brand || "No brand selected"}</p>
+                      </div>
+                      <span className={`rounded-full px-3 py-1 text-xs font-black ${uploading ? "bg-sky-50 text-sky-600" : "bg-emerald-50 text-emerald-700"}`}>
+                        {uploading ? "Uploading" : "Ready"}
+                      </span>
+                    </div>
+                  </div>
                 ) : (
-                  <div className="grid aspect-[4/3] place-items-center rounded-2xl bg-[#fbfaf7] text-sm font-bold text-neutral-500">No poster selected</div>
+                  <label className="grid aspect-[4/3] cursor-pointer place-items-center rounded-[28px] border-2 border-dashed border-[#cfe6f8] bg-[#f8fcff] px-6 text-center text-sm font-bold text-neutral-500 transition hover:bg-[#effaff]">
+                    <span>
+                      <ImageIcon className="mx-auto mb-3 text-[#45bff0]" size={42} />
+                      Click to upload a poster image
+                      <span className="mt-2 block text-xs font-semibold text-neutral-400">Recommended: wide image, under 18 MB</span>
+                    </span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="sr-only"
+                      disabled={uploading}
+                      onChange={(event) => {
+                        const file = event.target.files?.[0];
+                        if (file) uploadPoster(file);
+                        event.target.value = "";
+                      }}
+                    />
+                  </label>
                 )}
               </div>
             </div>
@@ -299,9 +352,9 @@ export default function AdminRoutinePosterPage() {
               <button type="button" onClick={closeModal} className="h-12 rounded-2xl border border-neutral-200 bg-white px-5 text-sm font-black text-[#15130f]">
                 Cancel
               </button>
-              <Button disabled={saving} className="h-12 rounded-2xl">
-                <Save size={18} />
-                {saving ? "Saving..." : editingIndex === null ? "Add Poster" : "Save Changes"}
+              <Button disabled={saving || uploading} className="h-12 rounded-2xl">
+                {saving ? <Loader2 size={18} className="animate-spin" /> : <Save size={18} />}
+                {uploading ? "Uploading..." : saving ? "Saving..." : editingIndex === null ? "Add Poster" : "Save Changes"}
               </Button>
             </div>
           </form>

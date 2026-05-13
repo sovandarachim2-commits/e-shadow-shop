@@ -86,7 +86,6 @@ async function getTopSellingProducts(): Promise<Product[]> {
       where: { order: { status: "COMPLETED" } },
       _sum: { quantity: true },
       orderBy: { _sum: { quantity: "desc" } },
-      take: 4
     });
     const productIds = rankedItems.map((item) => item.productId);
     if (!productIds.length) return [];
@@ -118,7 +117,7 @@ async function getTopSellingProducts(): Promise<Product[]> {
 function fillProductRow(products: Product[], featuredProducts: Product[]) {
   const featuredIds = new Set(featuredProducts.map((product) => product.id));
   const fallbackProducts = products.filter((product) => !featuredIds.has(product.id));
-  return [...featuredProducts, ...fallbackProducts].slice(0, 4);
+  return [...featuredProducts, ...fallbackProducts];
 }
 
 export default async function HomePage() {
