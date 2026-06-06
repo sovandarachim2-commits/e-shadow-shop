@@ -1,7 +1,8 @@
 "use client";
 
 import Image from "next/image";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Search, SlidersHorizontal, X } from "lucide-react";
 import { Suspense, useEffect, useMemo, useState } from "react";
 import { ProductGrid } from "@/components/product-grid";
 import { RoutineCarousel } from "@/components/routine-carousel";
@@ -11,13 +12,16 @@ import { getRoutinePostersFromHero, getRoutineVideosFromHero, HomeHero } from "@
 import { Brand, Category, Product } from "@/lib/types";
 
 function ShopPageContent() {
+  const router = useRouter();
   const searchParams = useSearchParams();
   const [products, setProducts] = useState<Product[]>([]);
   const [allProducts, setAllProducts] = useState<Product[]>([]);
   const [brands, setBrands] = useState<Brand[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
   const [search, setSearch] = useState("");
+  const [draftSearch, setDraftSearch] = useState("");
   const [brand, setBrand] = useState("");
   const [category, setCategory] = useState("");
   const [promotion, setPromotion] = useState("");
@@ -28,11 +32,30 @@ function ShopPageContent() {
   const [randomPromotionRoutinePosters, setRandomPromotionRoutinePosters] = useState<ReturnType<typeof getRoutinePostersFromHero>>([]);
 
   useEffect(() => {
-    setSearch(searchParams.get("search") || "");
+    const nextSearch = searchParams.get("search") || "";
+    setSearch(nextSearch);
+    setDraftSearch(nextSearch);
     setBrand(searchParams.get("brand") || "");
     setCategory(searchParams.get("category") || "");
     setPromotion(searchParams.get("promotion") || "");
   }, [searchParams]);
+
+  function updateFilters(next: Partial<Record<"search" | "brand" | "category" | "promotion" | "focus", string>>) {
+    const params = new URLSearchParams(searchParams.toString());
+    Object.entries(next).forEach(([key, value]) => {
+      const cleanValue = (value || "").trim();
+      if (cleanValue) params.set(key, cleanValue);
+      else params.delete(key);
+    });
+    params.delete("focus");
+    const query = params.toString();
+    router.push(query ? `/shop?${query}` : "/shop");
+  }
+
+  function submitFilters(event: React.FormEvent) {
+    event.preventDefault();
+    updateFilters({ search: draftSearch });
+  }
 
   useEffect(() => {
     fetch("/api/brands")
@@ -59,13 +82,17 @@ function ShopPageContent() {
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
+    setLoadError("");
     fetch(`/api/products?search=${encodeURIComponent(search)}&brand=${encodeURIComponent(brand)}&category=${encodeURIComponent(category)}&promotion=${encodeURIComponent(promotion)}`)
       .then((response) => (response.ok ? response.json() : Promise.reject()))
       .then((data) => {
         if (!cancelled) setProducts(data.products || []);
       })
       .catch(() => {
-        if (!cancelled) setProducts([]);
+        if (!cancelled) {
+          setProducts([]);
+          setLoadError("Products could not load right now. Please check the connection or try again.");
+        }
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -123,15 +150,23 @@ function ShopPageContent() {
   const isPromotionPage = promotion === "sale" || promotion === "new";
   const selectedBrand = brands.find((item) => item.name === brand);
   const productBrandNames = useMemo(() => {
-    return Array.from(new Set(allProducts.map((product) => product.brand).filter(Boolean)));
+    return Array.from(new Set(allProducts.map((product) => product.brand).filter((name): name is string => Boolean(name))));
   }, [allProducts]);
   const productBrands = useMemo(() => {
     return brands.length
       ? brands
       : productBrandNames.map((name) => ({ id: name, name, logoUrl: null, sortOrder: 0, isActive: true }));
   }, [brands, productBrandNames]);
+  const productCategoryNames = useMemo(() => {
+    return Array.from(new Set(allProducts.map((product) => product.category).filter((name): name is string => Boolean(name)))).sort();
+  }, [allProducts]);
+  const filterCategories = useMemo(() => {
+    return categories.length
+      ? categories
+      : productCategoryNames.map((name, index) => ({ id: name, name, imageUrl: null, sortOrder: index, isActive: true }));
+  }, [categories, productCategoryNames]);
   const promotionBrandNames = useMemo(() => {
-    return Array.from(new Set(promotionProducts.map((product) => product.brand).filter(Boolean)));
+    return Array.from(new Set(promotionProducts.map((product) => product.brand).filter((name): name is string => Boolean(name))));
   }, [promotionProducts]);
   const promotionBrands = useMemo(() => {
     return promotionBrandNames.map((name) => brands.find((item) => item.name === name) || { id: name, name, logoUrl: null, sortOrder: 0, isActive: true });
@@ -160,6 +195,7 @@ function ShopPageContent() {
     return product.isOnSale;
   });
   const promotionRoutineVideos = brand ? brandRoutineVideos : routineVideos;
+  const hasActiveFilters = Boolean(search || brand || category || promotion);
 
   useEffect(() => {
     if (promotion !== "sale" || brand || routineVideos.length === 0) {
@@ -198,11 +234,11 @@ function ShopPageContent() {
   const displayedRoutinePosters = brand ? brandRoutinePosters : randomPromotionRoutinePosters;
 
   return (
-    <section className="container-page py-12">
+    <section className="container-page py-7 md:py-12">
       <div className="flex flex-col justify-between gap-5 md:flex-row md:items-end">
         <div>
           <div className="flex flex-wrap items-center gap-4">
-            <h1 className="font-serif text-5xl font-bold text-[#082b4c]">{promotion === "sale" ? "On Sale" : promotion === "new" ? "New Arrivals" : "Shop"}</h1>
+            <h1 className="font-serif text-4xl font-bold text-[#082b4c] md:text-5xl">{promotion === "sale" ? "On Sale" : promotion === "new" ? "New Arrivals" : "Shop"}</h1>
             {brand && (
               <div className="flex min-h-14 items-center gap-3 rounded-2xl border border-[#f3c7b8]/70 bg-white px-4 py-2 shadow-sm">
                 {selectedBrand?.logoUrl && (
@@ -217,6 +253,76 @@ function ShopPageContent() {
               </div>
             )}
           </div>
+          <p className="mt-3 max-w-2xl text-sm leading-6 text-[#697b91]">
+            Search, filter, and browse products from one place. Your filters stay in the URL, so refresh and back button work normally.
+          </p>
+        </div>
+      </div>
+
+      <div className="mt-6 rounded-[24px] border border-[#dce6ff] bg-white p-4 shadow-[0_14px_34px_rgba(33,96,255,0.08)] md:p-5">
+        <div className="mb-4 flex items-center gap-2 text-sm font-black text-[#173e82]">
+          <SlidersHorizontal size={18} className="text-[#4c76ef]" />
+          Find Products
+        </div>
+        <div className="grid gap-3 lg:grid-cols-[1fr_190px_190px_170px_auto]">
+          <form onSubmit={submitFilters} className="flex min-w-0 gap-2">
+            <label className="flex h-12 min-w-0 flex-1 items-center gap-3 rounded-2xl border border-[#d8e2ff] bg-[#f9fbff] px-4 text-sm text-[#697b91] focus-within:border-[#4c76ef]">
+              <Search size={19} className="shrink-0" />
+              <input
+                autoFocus={searchParams.get("focus") === "search"}
+                value={draftSearch}
+                onChange={(event) => setDraftSearch(event.target.value)}
+                className="min-w-0 flex-1 bg-transparent font-bold text-[#173e82] outline-none placeholder:text-[#8b99aa]"
+                placeholder="Search name, brand, or description"
+              />
+            </label>
+            <button type="submit" className="h-12 rounded-2xl bg-[#173e82] px-5 text-sm font-black text-white transition hover:bg-[#2e57d0]">
+              Search
+            </button>
+          </form>
+
+          <select
+            value={brand}
+            onChange={(event) => updateFilters({ brand: event.target.value })}
+            className="h-12 rounded-2xl border border-[#d8e2ff] bg-[#f9fbff] px-4 text-sm font-black text-[#173e82] outline-none"
+          >
+            <option value="">All brands</option>
+            {productBrands.map((item) => (
+              <option key={item.id} value={item.name}>{item.name}</option>
+            ))}
+          </select>
+
+          <select
+            value={category}
+            onChange={(event) => updateFilters({ category: event.target.value })}
+            className="h-12 rounded-2xl border border-[#d8e2ff] bg-[#f9fbff] px-4 text-sm font-black text-[#173e82] outline-none"
+          >
+            <option value="">All categories</option>
+            {filterCategories.map((item) => (
+              <option key={item.id} value={item.name}>{item.name}</option>
+            ))}
+          </select>
+
+          <select
+            value={promotion}
+            onChange={(event) => updateFilters({ promotion: event.target.value })}
+            className="h-12 rounded-2xl border border-[#d8e2ff] bg-[#f9fbff] px-4 text-sm font-black text-[#173e82] outline-none"
+          >
+            <option value="">All products</option>
+            <option value="new">New arrivals</option>
+            <option value="sale">On sale</option>
+          </select>
+
+          {hasActiveFilters ? (
+            <button
+              type="button"
+              onClick={() => router.push("/shop")}
+              className="flex h-12 items-center justify-center gap-2 rounded-2xl border border-[#d8e2ff] bg-white px-4 text-sm font-black text-[#4c76ef] transition hover:bg-[#f4f7ff]"
+            >
+              <X size={17} />
+              Clear
+            </button>
+          ) : null}
         </div>
       </div>
 
@@ -228,7 +334,7 @@ function ShopPageContent() {
           <div className="flex items-center gap-4 overflow-x-auto pb-1">
             <button
               type="button"
-              onClick={() => setBrand("")}
+              onClick={() => updateFilters({ brand: "" })}
               className={`shrink-0 rounded-full border px-5 py-3 text-sm font-black uppercase tracking-[0.18em] transition ${
                 !brand
                   ? "border-white/80 bg-white text-[#2e57d0] shadow-[0_14px_32px_rgba(10,37,112,0.20)]"
@@ -241,7 +347,7 @@ function ShopPageContent() {
               <button
                 key={item.id}
                 type="button"
-                onClick={() => setBrand(item.name || "")}
+                onClick={() => updateFilters({ brand: item.name || "" })}
                 className={`flex shrink-0 items-center gap-3 rounded-full border px-4 py-2.5 text-base font-black tracking-[0.12em] transition ${
                   brand === item.name
                     ? "border-white/80 bg-white text-[#2e57d0] shadow-[0_14px_32px_rgba(10,37,112,0.20)]"
@@ -265,10 +371,15 @@ function ShopPageContent() {
               <Skeleton key={item} className="h-96" />
             ))}
           </div>
+        ) : loadError ? (
+          <div className="rounded-2xl border border-[#f0c7c7] bg-white px-6 py-12 text-center shadow-sm">
+            <p className="text-xl font-bold text-[#9f3030]">Products could not load</p>
+            <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-[#697b91]">{loadError}</p>
+          </div>
         ) : !visibleProducts.length ? (
           <div className="rounded-2xl border border-[#f3c7b8]/70 bg-white px-6 py-12 text-center shadow-sm">
             <p className="text-xl font-bold text-[#082b4c]">No products found</p>
-            <p className="mt-2 text-sm text-[#697b91]">Add products in admin or adjust your filters.</p>
+            <p className="mt-2 text-sm text-[#697b91]">Adjust your filters or add products in admin.</p>
           </div>
         ) : (
           <ProductGrid products={visibleProducts} />

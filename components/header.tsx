@@ -9,9 +9,9 @@ import { useAuthStore } from "@/lib/auth-store";
 import { DEFAULT_BRAND_NAME, DEFAULT_BRAND_TAGLINE } from "@/lib/site-brand";
 
 const links = [
-  { href: "/", label: "Home Page" },
-  { href: "/shop?promotion=sale", label: "On Sale" },
-  { href: "/shop?promotion=new", label: "New Arrivals" }
+  { href: "/", label: "Home" },
+  { href: "/shop?promotion=sale", label: "Sale" },
+  { href: "/shop?promotion=new", label: "New" }
 ];
 
 export function Header() {
@@ -134,7 +134,7 @@ export function Header() {
           </form>
 
           <div className="flex shrink-0 items-center gap-1 sm:gap-3">
-            <button aria-label="Search" onClick={() => router.push("/shop")} className="rounded-full p-1.5 text-[var(--foreground)] transition hover:bg-[var(--panel)] sm:p-2 xl:hidden">
+            <button aria-label="Search products" onClick={() => router.push("/shop?focus=search")} className="rounded-full p-1.5 text-[var(--foreground)] transition hover:bg-[var(--panel)] sm:p-2 xl:hidden">
               <Search size={23} />
             </button>
             <Link href="/cart" aria-label="Cart" className="relative rounded-full p-1.5 text-[var(--foreground)] transition hover:bg-[var(--panel)] sm:p-2">
@@ -172,6 +172,18 @@ export function Header() {
             </div>
 
             <div className="flex-1 overflow-y-auto px-6 py-7">
+              <form
+                onSubmit={(event) => {
+                  submitSearch(event);
+                  setOpen(false);
+                }}
+                className="mb-5"
+              >
+                <label className="flex h-12 items-center gap-3 rounded-2xl border border-[var(--champagne)] bg-white px-4 text-sm text-[var(--muted)]">
+                  <Search size={20} />
+                  <input value={query} onChange={(event) => setQuery(event.target.value)} className="w-full bg-transparent outline-none" placeholder="Search products" />
+                </label>
+              </form>
               <nav className="grid gap-1 text-lg font-black text-[var(--foreground)]">
                 {links.map((link) => (
                   <Link key={link.href} onClick={() => setOpen(false)} href={link.href} className="flex min-h-14 items-center gap-4 rounded-2xl px-2 transition hover:bg-[var(--surface-tint)]">
